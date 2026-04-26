@@ -30,10 +30,6 @@ body {
 
 
 
-    margin: 0;
-
-
-
     background: #000;
 
 
@@ -46,19 +42,7 @@ body {
 
 
 
-}
-
-
-
-.container {
-
-
-
-    max-width: 900px;
-
-
-
-    margin: auto;
+    margin: 0;
 
 
 
@@ -110,11 +94,51 @@ h1, h2 {
 
 
 
-.big {
+input {
 
 
 
-    font-size: 28px;
+    width: 100%;
+
+
+
+    padding: 10px;
+
+
+
+    margin: 8px 0;
+
+
+
+    border-radius: 8px;
+
+
+
+    border: none;
+
+
+
+}
+
+
+
+button {
+
+
+
+    width: 100%;
+
+
+
+    padding: 12px;
+
+
+
+    background: #FFD700;
+
+
+
+    border: none;
 
 
 
@@ -122,15 +146,7 @@ h1, h2 {
 
 
 
-}
-
-
-
-.green {
-
-
-
-    color: #00ff88;
+    border-radius: 10px;
 
 
 
@@ -138,11 +154,15 @@ h1, h2 {
 
 
 
-.red {
+.result {
 
 
 
-    color: #ff5555;
+    margin-top: 15px;
+
+
+
+    font-size: 18px;
 
 
 
@@ -162,131 +182,199 @@ h1, h2 {
 
 
 
-<div class="container">
+<div class="card">
 
 
 
-    <div class="card">
+    <h1>建智操盤神器</h1>
 
 
 
-        <h1>建智操盤神器</h1>
-
-
-
-        <p>AI 幫你選股，紀律幫你賺錢</p>
-
-
-
-    </div>
-
-
-
-    <div class="card">
-
-
-
-        <h2>今日操作建議</h2>
-
-
-
-        <p>神達：續抱，84附近分批減碼</p>
-
-
-
-        <p>00919：持續領息，回檔可加碼</p>
-
-
-
-        <p>英業達：觀察量價，突破再進場</p>
-
-
-
-    </div>
-
-
-
-    <div class="card">
-
-
-
-        <h2>今日損益總覽</h2>
-
-
-
-        <p class="big green">+8,650 元</p>
-
-
-
-    </div>
-
-
-
-    <div class="card">
-
-
-
-        <h2>神達（3706）</h2>
-
-
-
-        <p>現價：84.5</p>
-
-
-
-        <p>成交量：25,701</p>
-
-
-
-        <p>建議：續抱</p>
-
-
-
-    </div>
-
-
-
-    <div class="card">
-
-
-
-        <h2>00919</h2>
-
-
-
-        <p>現價：23.36</p>
-
-
-
-        <p>建議：持續領息</p>
-
-
-
-    </div>
-
-
-
-    <div class="card">
-
-
-
-        <h2>英業達（2356）</h2>
-
-
-
-        <p>現價：43.1</p>
-
-
-
-        <p>建議：觀察</p>
-
-
-
-    </div>
+    <p>AI 幫你選股，紀律幫你賺錢</p>
 
 
 
 </div>
+
+
+
+<div class="card">
+
+
+
+    <h2>股票監控（可自由更改）</h2>
+
+
+
+    <input id="stockCode" placeholder="股票代號，例如 3706">
+
+
+
+    <input id="buyPrice" placeholder="買入成本價，例如 75.66">
+
+
+
+    <input id="quantity" placeholder="持有張數，例如 2">
+
+
+
+    <button onclick="analyzeStock()">立即分析</button>
+
+
+
+    <div class="result" id="resultArea"></div>
+
+
+
+</div>
+
+
+
+<script>
+
+
+
+async function analyzeStock() {
+
+
+
+    const stockCode = document.getElementById("stockCode").value;
+
+
+
+    const buyPrice = parseFloat(document.getElementById("buyPrice").value);
+
+
+
+    const quantity = parseFloat(document.getElementById("quantity").value);
+
+
+
+    const resultArea = document.getElementById("resultArea");
+
+
+
+    if (!stockCode || !buyPrice || !quantity) {
+
+
+
+        resultArea.innerHTML = "請完整輸入資料";
+
+
+
+        return;
+
+
+
+    }
+
+
+
+    try {
+
+
+
+        const url = `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${stockCode}.tw`;
+
+
+
+        const response = await fetch(url);
+
+
+
+        const data = await response.json();
+
+
+
+        const stock = data.msgArray[0];
+
+
+
+        const currentPrice = parseFloat(stock.z);
+
+
+
+        const profit = (currentPrice - buyPrice) * quantity * 1000;
+
+
+
+        let advice = "";
+
+
+
+        if (currentPrice >= buyPrice * 1.10) {
+
+
+
+            advice = "建議：分批停利";
+
+
+
+        } else if (currentPrice <= buyPrice * 0.93) {
+
+
+
+            advice = "建議：注意停損";
+
+
+
+        } else {
+
+
+
+            advice = "建議：續抱觀察";
+
+
+
+        }
+
+
+
+        resultArea.innerHTML = `
+
+
+
+            現價：${currentPrice}<br>
+
+
+
+            今日損益：${profit.toFixed(0)} 元<br>
+
+
+
+            停利區：${(buyPrice * 1.10).toFixed(2)}<br>
+
+
+
+            停損區：${(buyPrice * 0.93).toFixed(2)}<br>
+
+
+
+            ${advice}
+
+
+
+        `;
+
+
+
+    } catch (error) {
+
+
+
+        resultArea.innerHTML = "讀取失敗，請確認股票代號";
+
+
+
+    }
+
+
+
+}
+
+
+
+</script>
 
 
 
