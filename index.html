@@ -26,55 +26,27 @@
 
 
 
-body {
+body{
 
 
 
-    background: #000;
+    background:#000;
 
 
 
-    color: white;
+    color:#fff;
 
 
 
-    font-family: Arial;
+    font-family:Arial;
 
 
 
-    margin: 0;
+    padding:20px;
 
 
 
-    padding: 20px;
-
-
-
-}
-
-
-
-.card {
-
-
-
-    background: #111;
-
-
-
-    border: 1px solid #FFD700;
-
-
-
-    border-radius: 15px;
-
-
-
-    padding: 20px;
-
-
-
-    margin-bottom: 20px;
+    margin:0;
 
 
 
@@ -82,39 +54,27 @@ body {
 
 
 
-h1, h2 {
+.card{
 
 
 
-    color: #FFD700;
+    background:#111;
 
 
 
-}
+    border:1px solid #FFD700;
 
 
 
-input {
+    border-radius:15px;
 
 
 
-    width: 100%;
+    padding:20px;
 
 
 
-    padding: 10px;
-
-
-
-    margin: 8px 0;
-
-
-
-    border-radius: 8px;
-
-
-
-    border: none;
+    margin-bottom:20px;
 
 
 
@@ -122,35 +82,11 @@ input {
 
 
 
-button {
+h1,h2{
 
 
 
-    width: 100%;
-
-
-
-    padding: 12px;
-
-
-
-    background: #FFD700;
-
-
-
-    border: none;
-
-
-
-    font-weight: bold;
-
-
-
-    border-radius: 10px;
-
-
-
-    cursor: pointer;
+    color:#FFD700;
 
 
 
@@ -158,19 +94,75 @@ button {
 
 
 
-.result {
+input{
 
 
 
-    margin-top: 15px;
+    width:100%;
 
 
 
-    font-size: 16px;
+    padding:10px;
 
 
 
-    line-height: 1.8;
+    margin:8px 0;
+
+
+
+    border:none;
+
+
+
+    border-radius:8px;
+
+
+
+}
+
+
+
+button{
+
+
+
+    width:100%;
+
+
+
+    padding:12px;
+
+
+
+    border:none;
+
+
+
+    border-radius:10px;
+
+
+
+    background:#FFD700;
+
+
+
+    font-weight:bold;
+
+
+
+}
+
+
+
+.result{
+
+
+
+    margin-top:15px;
+
+
+
+    line-height:1.8;
 
 
 
@@ -198,55 +190,7 @@ button {
 
 
 
-    <p>AI 幫你選股，紀律幫你賺錢</p>
-
-
-
-</div>
-
-
-
-<div class="card">
-
-
-
-    <h2>今日操作建議</h2>
-
-
-
-    <p>神達：續抱觀察</p>
-
-
-
-    <p>00919：持續領息</p>
-
-
-
-    <p>英業達：突破再進場</p>
-
-
-
-</div>
-
-
-
-<div class="card">
-
-
-
-    <h2>今日最強 AI 股 TOP 3</h2>
-
-
-
-    <p>TOP1：神達</p>
-
-
-
-    <p>TOP2：英業達</p>
-
-
-
-    <p>TOP3：緯創</p>
+    <p>三檔同步自動操盤系統</p>
 
 
 
@@ -262,15 +206,15 @@ button {
 
 
 
-    <input id="code1" placeholder="股票代號">
+    <input id="code1" placeholder="股票代號，例如 3706">
 
 
 
-    <input id="buy1" placeholder="買入成本價">
+    <input id="buy1" placeholder="成本價，例如 75.66">
 
 
 
-    <input id="qty1" placeholder="持有張數">
+    <input id="qty1" placeholder="張數，例如 2">
 
 
 
@@ -290,15 +234,15 @@ button {
 
 
 
-    <input id="code2" placeholder="股票代號">
+    <input id="code2" placeholder="股票代號，例如 00919">
 
 
 
-    <input id="buy2" placeholder="買入成本價">
+    <input id="buy2" placeholder="成本價">
 
 
 
-    <input id="qty2" placeholder="持有張數">
+    <input id="qty2" placeholder="張數">
 
 
 
@@ -318,15 +262,15 @@ button {
 
 
 
-    <input id="code3" placeholder="股票代號">
+    <input id="code3" placeholder="股票代號，例如 2356">
 
 
 
-    <input id="buy3" placeholder="買入成本價">
+    <input id="buy3" placeholder="成本價">
 
 
 
-    <input id="qty3" placeholder="持有張數">
+    <input id="qty3" placeholder="張數">
 
 
 
@@ -354,23 +298,15 @@ button {
 
 
 
-function saveData() {
+function getMarket(code){
 
 
 
-    for (let i = 1; i <= 3; i++) {
+    if(code.startsWith("6") || code.startsWith("7") || code.startsWith("8")){
 
 
 
-        localStorage.setItem(`code${i}`, document.getElementById(`code${i}`).value);
-
-
-
-        localStorage.setItem(`buy${i}`, document.getElementById(`buy${i}`).value);
-
-
-
-        localStorage.setItem(`qty${i}`, document.getElementById(`qty${i}`).value);
+        return "otc";
 
 
 
@@ -378,27 +314,27 @@ function saveData() {
 
 
 
+    return "tse";
+
+
+
 }
 
 
 
-function loadData() {
+async function getStock(code,buy,qty,resultId){
 
 
 
-    for (let i = 1; i <= 3; i++) {
+    if(!code || !buy || !qty){
 
 
 
-        document.getElementById(`code${i}`).value = localStorage.getItem(`code${i}`) || "";
+        document.getElementById(resultId).innerHTML = "請完整輸入資料";
 
 
 
-        document.getElementById(`buy${i}`).value = localStorage.getItem(`buy${i}`) || "";
-
-
-
-        document.getElementById(`qty${i}`).value = localStorage.getItem(`qty${i}`) || "";
+        return;
 
 
 
@@ -406,23 +342,19 @@ function loadData() {
 
 
 
-}
+    const market = getMarket(code);
 
 
 
-async function getStock(code, buy, qty, resultId) {
+    const url =
 
 
 
-    if (!code || !buy || !qty) return;
+`https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=${market}_${code}.tw&json=1&delay=0`;
 
 
 
-    try {
-
-
-
-        const url = `https://mis.twse.com.tw/stock/api/getStockInfo.jsp?ex_ch=tse_${code}.tw`;
+    try{
 
 
 
@@ -434,11 +366,43 @@ async function getStock(code, buy, qty, resultId) {
 
 
 
+        if(!data.msgArray || !data.msgArray.length){
+
+
+
+            document.getElementById(resultId).innerHTML = "查無資料";
+
+
+
+            return;
+
+
+
+        }
+
+
+
         const stock = data.msgArray[0];
 
 
 
-        const price = parseFloat(stock.z);
+        const price = parseFloat(stock.z || stock.y);
+
+
+
+        if(isNaN(price)){
+
+
+
+            document.getElementById(resultId).innerHTML = "暫無即時成交價";
+
+
+
+            return;
+
+
+
+        }
 
 
 
@@ -458,11 +422,23 @@ async function getStock(code, buy, qty, resultId) {
 
 
 
-        if (price >= buy * 1.10) advice = "建議分批停利";
+        if(price >= buy * 1.10){
 
 
 
-        if (price <= buy * 0.93) advice = "建議注意停損";
+            advice = "建議：分批停利";
+
+
+
+        }else if(price <= buy * 0.93){
+
+
+
+            advice = "建議：注意停損";
+
+
+
+        }
 
 
 
@@ -494,11 +470,11 @@ async function getStock(code, buy, qty, resultId) {
 
 
 
-    } catch {
+    }catch(e){
 
 
 
-        document.getElementById(resultId).innerHTML = "讀取失敗";
+        document.getElementById(resultId).innerHTML = "讀取失敗（API/CORS）";
 
 
 
@@ -510,19 +486,15 @@ async function getStock(code, buy, qty, resultId) {
 
 
 
-async function analyzeAll() {
+function analyzeAll(){
 
 
 
-    saveData();
+    for(let i=1;i<=3;i++){
 
 
 
-    for (let i = 1; i <= 3; i++) {
-
-
-
-        const code = document.getElementById(`code${i}`).value;
+        const code = document.getElementById(`code${i}`).value.trim();
 
 
 
@@ -534,7 +506,7 @@ async function analyzeAll() {
 
 
 
-        getStock(code, buy, qty, `result${i}`);
+        getStock(code,buy,qty,`result${i}`);
 
 
 
@@ -543,10 +515,6 @@ async function analyzeAll() {
 
 
 }
-
-
-
-loadData();
 
 
 
