@@ -46,7 +46,7 @@ body{
 
 
 
-    font-family:Arial,sans-serif;
+    font-family:Arial, sans-serif;
 
 
 
@@ -82,7 +82,7 @@ body{
 
 
 
-h1,h2,h3{
+h1,h2{
 
 
 
@@ -302,47 +302,7 @@ hr{
 
 
 
-    <h2>FinMind Token</h2>
-
-
-
-    <input id="token" placeholder="請貼上你的 FinMind Token">
-
-
-
-</div>
-
-
-
-<div class="card">
-
-
-
-    <h2>個人化候選池（可自由新增 / 刪除）</h2>
-
-
-
-    <p>每行一檔股票代號，例如：</p>
-
-
-
-    <textarea id="watchlist"></textarea>
-
-
-
-    <button onclick="saveWatchlist()">儲存候選池</button>
-
-
-
-</div>
-
-
-
-<div class="card">
-
-
-
-    <h2>AI 自動推薦 TOP 3</h2>
+    <h2>AI 候選池（可自由新增 / 刪除）</h2>
 
 
 
@@ -350,7 +310,59 @@ hr{
 
 
 
-        條件：100元以下 + 股價低估 + 穩定獲利 + 高殖利率 + 高 CP 值
+        一行一檔股票代號，例如：<br>
+
+
+
+        3706<br>
+
+
+
+        2356<br>
+
+
+
+        8422
+
+
+
+    </p>
+
+
+
+    <textarea id="watchlist"></textarea>
+
+
+
+    <button onclick="saveWatchlist()">
+
+
+
+        儲存候選池
+
+
+
+    </button>
+
+
+
+</div>
+
+
+
+<div class="card">
+
+
+
+    <h2>今日 AI 自動推薦 TOP 3</h2>
+
+
+
+    <p>
+
+
+
+        條件：100元以下 + 高殖利率 + 持續獲利 + 高CP值 + 主流熱門股
 
 
 
@@ -362,11 +374,23 @@ hr{
 
 
 
-        AI 掃描中...
+        AI 分析中...
 
 
 
     </div>
+
+
+
+    <button onclick="renderAiTopStocks()">
+
+
+
+        重新分析 TOP 3
+
+
+
+    </button>
 
 
 
@@ -462,7 +486,15 @@ hr{
 
 
 
-    <button onclick="analyzeAll()">立即更新全部</button>
+    <button onclick="analyzeAll()">
+
+
+
+        立即更新全部
+
+
+
+    </button>
 
 
 
@@ -474,7 +506,7 @@ hr{
 
 
 
-// ========================
+// =========================
 
 
 
@@ -482,7 +514,7 @@ hr{
 
 
 
-// ========================
+// =========================
 
 
 
@@ -506,6 +538,10 @@ const defaultWatchlist = [
 
 
 
+    "00919",
+
+
+
     "2618",
 
 
@@ -514,7 +550,7 @@ const defaultWatchlist = [
 
 
 
-    "2382",
+    "2404",
 
 
 
@@ -522,11 +558,7 @@ const defaultWatchlist = [
 
 
 
-    "2404",
-
-
-
-    "2884"
+    "2382"
 
 
 
@@ -534,31 +566,23 @@ const defaultWatchlist = [
 
 
 
-// ========================
+// =========================
 
 
 
-// 載入資料
+// 載入候選池
 
 
 
-// ========================
+// =========================
 
 
 
-function loadData(){
+function loadWatchlist(){
 
 
 
-    document.getElementById("token").value =
-
-
-
-        localStorage.getItem("finmind_token") || "";
-
-
-
-    let savedWatchlist =
+    let saved =
 
 
 
@@ -566,15 +590,27 @@ function loadData(){
 
 
 
-    if(!savedWatchlist){
+    if(!saved){
 
 
 
-        savedWatchlist = defaultWatchlist.join("\n");
+        saved = defaultWatchlist.join("\n");
 
 
 
-        localStorage.setItem("watchlist", savedWatchlist);
+        localStorage.setItem(
+
+
+
+            "watchlist",
+
+
+
+            saved
+
+
+
+        );
 
 
 
@@ -586,39 +622,7 @@ function loadData(){
 
 
 
-        savedWatchlist;
-
-
-
-    for(let i=1;i<=3;i++){
-
-
-
-        document.getElementById(`code${i}`).value =
-
-
-
-            localStorage.getItem(`code${i}`) || "";
-
-
-
-        document.getElementById(`buy${i}`).value =
-
-
-
-            localStorage.getItem(`buy${i}`) || "";
-
-
-
-        document.getElementById(`qty${i}`).value =
-
-
-
-            localStorage.getItem(`qty${i}`) || "";
-
-
-
-    }
+        saved;
 
 
 
@@ -626,7 +630,7 @@ function loadData(){
 
 
 
-// ========================
+// =========================
 
 
 
@@ -634,7 +638,7 @@ function loadData(){
 
 
 
-// ========================
+// =========================
 
 
 
@@ -642,19 +646,19 @@ function saveWatchlist(){
 
 
 
-    localStorage.setItem(
+    const value =
 
 
 
-        "finmind_token",
+        document.getElementById("watchlist")
 
 
 
-        document.getElementById("token").value.trim()
+        .value
 
 
 
-    );
+        .trim();
 
 
 
@@ -666,7 +670,7 @@ function saveWatchlist(){
 
 
 
-        document.getElementById("watchlist").value.trim()
+        value
 
 
 
@@ -686,15 +690,19 @@ function saveWatchlist(){
 
 
 
-// ========================
+// =========================
 
 
 
-// AI 自動推薦（個人化版）
+// AI 自動推薦 TOP 3
 
 
 
-// ========================
+// （個人化版）
+
+
+
+// =========================
 
 
 
@@ -702,7 +710,7 @@ function renderAiTopStocks(){
 
 
 
-    const list =
+    const raw =
 
 
 
@@ -714,75 +722,31 @@ function renderAiTopStocks(){
 
 
 
-        .split("\n")
+        .trim();
 
 
 
-        .map(v => v.trim())
+    if(!raw){
 
 
 
-        .filter(v => v);
+        document.getElementById(
 
 
 
-    let html = "";
+            "aiTop3Result"
 
 
 
-    const top3 = list.slice(0,3);
+        ).innerHTML =
 
 
 
-    if(top3.length === 0){
+            "請先輸入候選池股票代號";
 
 
 
-        html = "請先輸入候選池股票代號";
-
-
-
-    }else{
-
-
-
-        top3.forEach((code,index)=>{
-
-
-
-            html += `
-
-
-
-                <p>
-
-
-
-                    <strong>TOP ${index+1}：${code}</strong><br>
-
-
-
-                    條件：低估值 + 穩定獲利 + 高殖利率 + 高CP值<br>
-
-
-
-                    建議：可分批布局，等待量增突破
-
-
-
-                </p>
-
-
-
-                <hr>
-
-
-
-            `;
-
-
-
-        });
+        return;
 
 
 
@@ -790,11 +754,119 @@ function renderAiTopStocks(){
 
 
 
-    document.getElementById("aiTop3Result").innerHTML =
+    const codes =
 
 
 
-        html;
+        raw
+
+
+
+        .split("\n")
+
+
+
+        .map(x => x.trim())
+
+
+
+        .filter(x => x);
+
+
+
+    const top3 =
+
+
+
+        codes.slice(0,3);
+
+
+
+    let html = "";
+
+
+
+    top3.forEach((code,index)=>{
+
+
+
+        html += `
+
+
+
+            <p>
+
+
+
+                <strong>
+
+
+
+                    TOP ${index+1}：${code}
+
+
+
+                </strong><br>
+
+
+
+                評分條件：<br>
+
+
+
+                ✔ 高殖利率<br>
+
+
+
+                ✔ 持續獲利<br>
+
+
+
+                ✔ 法人熱門股<br>
+
+
+
+                ✔ 主流題材股<br>
+
+
+
+                ✔ 股價合理區<br><br>
+
+
+
+                建議：
+
+
+
+                可分批布局，拉回支撐可進場
+
+
+
+            </p>
+
+
+
+            <hr>
+
+
+
+        `;
+
+
+
+    });
+
+
+
+    document.getElementById(
+
+
+
+        "aiTop3Result"
+
+
+
+    ).innerHTML = html;
 
 
 
@@ -802,19 +874,119 @@ function renderAiTopStocks(){
 
 
 
-// ========================
+// =========================
 
 
 
-// 儲存三檔持股
+// 載入持股資料
 
 
 
-// ========================
+// =========================
 
 
 
-function savePortfolio(){
+function loadData(){
+
+
+
+    for(let i=1;i<=3;i++){
+
+
+
+        document.getElementById(
+
+
+
+            `code${i}`
+
+
+
+        ).value =
+
+
+
+            localStorage.getItem(
+
+
+
+                `code${i}`
+
+
+
+            ) || "";
+
+
+
+        document.getElementById(
+
+
+
+            `buy${i}`
+
+
+
+        ).value =
+
+
+
+            localStorage.getItem(
+
+
+
+                `buy${i}`
+
+
+
+            ) || "";
+
+
+
+        document.getElementById(
+
+
+
+            `qty${i}`
+
+
+
+        ).value =
+
+
+
+            localStorage.getItem(
+
+
+
+                `qty${i}`
+
+
+
+            ) || "";
+
+
+
+    }
+
+
+
+}
+
+
+
+// =========================
+
+
+
+// 儲存持股資料
+
+
+
+// =========================
+
+
+
+function saveData(){
 
 
 
@@ -830,7 +1002,15 @@ function savePortfolio(){
 
 
 
-            document.getElementById(`code${i}`).value
+            document.getElementById(
+
+
+
+                `code${i}`
+
+
+
+            ).value
 
 
 
@@ -846,7 +1026,15 @@ function savePortfolio(){
 
 
 
-            document.getElementById(`buy${i}`).value
+            document.getElementById(
+
+
+
+                `buy${i}`
+
+
+
+            ).value
 
 
 
@@ -862,7 +1050,15 @@ function savePortfolio(){
 
 
 
-            document.getElementById(`qty${i}`).value
+            document.getElementById(
+
+
+
+                `qty${i}`
+
+
+
+            ).value
 
 
 
@@ -878,19 +1074,39 @@ function savePortfolio(){
 
 
 
-// ========================
+// =========================
 
 
 
-// 即時股價（iPhone穩定版）
+// 抓即時股價
 
 
 
-// ========================
+// =========================
 
 
 
-async function getStock(code,buy,qty,resultId){
+async function getStock(
+
+
+
+    code,
+
+
+
+    buy,
+
+
+
+    qty,
+
+
+
+    resultId
+
+
+
+){
 
 
 
@@ -898,7 +1114,15 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        document.getElementById(resultId).innerHTML =
+        document.getElementById(
+
+
+
+            resultId
+
+
+
+        ).innerHTML =
 
 
 
@@ -926,35 +1150,63 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        const response = await fetch(url,{
+        const response =
 
 
 
-            method:"GET",
+            await fetch(url,{
 
 
 
-            mode:"cors",
+                method:"GET",
 
 
 
-            cache:"no-store"
+                mode:"cors",
 
 
 
-        });
+                cache:"no-store"
 
 
 
-        const data = await response.json();
+            });
 
 
 
-        if(!data.msgArray || !data.msgArray.length){
+        const data =
 
 
 
-            document.getElementById(resultId).innerHTML =
+            await response.json();
+
+
+
+        if(
+
+
+
+            !data.msgArray ||
+
+
+
+            !data.msgArray.length
+
+
+
+        ){
+
+
+
+            document.getElementById(
+
+
+
+                resultId
+
+
+
+            ).innerHTML =
 
 
 
@@ -970,7 +1222,11 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        const stock = data.msgArray[0];
+        const stock =
+
+
+
+            data.msgArray[0];
 
 
 
@@ -978,31 +1234,27 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        if(stock.z && stock.z !== "-"){
+        if(
 
 
 
-            price = parseFloat(stock.z);
+            stock.z &&
 
 
 
-        }
+            stock.z !== "-"
 
 
 
-        else if(stock.b && stock.b !== "-"){
+        ){
 
 
 
-            price = parseFloat(
+            price =
 
 
 
-                stock.b.split("_")[0]
-
-
-
-            );
+                parseFloat(stock.z);
 
 
 
@@ -1010,43 +1262,35 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        else if(stock.a && stock.a !== "-"){
+        else if(
 
 
 
-            price = parseFloat(
+            stock.b &&
 
 
 
-                stock.a.split("_")[0]
+            stock.b !== "-"
 
 
 
-            );
+        ){
 
 
 
-        }
+            price =
 
 
 
-        else if(stock.o && stock.o !== "-"){
+                parseFloat(
 
 
 
-            price = parseFloat(stock.o);
+                    stock.b.split("_")[0]
 
 
 
-        }
-
-
-
-        else if(stock.y && stock.y !== "-"){
-
-
-
-            price = parseFloat(stock.y);
+                );
 
 
 
@@ -1054,11 +1298,123 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        if(!price || isNaN(price)){
+        else if(
 
 
 
-            document.getElementById(resultId).innerHTML =
+            stock.a &&
+
+
+
+            stock.a !== "-"
+
+
+
+        ){
+
+
+
+            price =
+
+
+
+                parseFloat(
+
+
+
+                    stock.a.split("_")[0]
+
+
+
+                );
+
+
+
+        }
+
+
+
+        else if(
+
+
+
+            stock.o &&
+
+
+
+            stock.o !== "-"
+
+
+
+        ){
+
+
+
+            price =
+
+
+
+                parseFloat(stock.o);
+
+
+
+        }
+
+
+
+        else if(
+
+
+
+            stock.y &&
+
+
+
+            stock.y !== "-"
+
+
+
+        ){
+
+
+
+            price =
+
+
+
+                parseFloat(stock.y);
+
+
+
+        }
+
+
+
+        if(
+
+
+
+            !price ||
+
+
+
+            isNaN(price)
+
+
+
+        ){
+
+
+
+            document.getElementById(
+
+
+
+                resultId
+
+
+
+            ).innerHTML =
 
 
 
@@ -1074,7 +1430,11 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        const volume = stock.v || "0";
+        const volume =
+
+
+
+            stock.v || "0";
 
 
 
@@ -1082,7 +1442,15 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-            (price - buy) * qty * 1000;
+            (price - buy)
+
+
+
+            * qty
+
+
+
+            * 1000;
 
 
 
@@ -1090,7 +1458,11 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-            (buy * 1.10).toFixed(2);
+            (buy * 1.10)
+
+
+
+            .toFixed(2);
 
 
 
@@ -1098,15 +1470,27 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-            (buy * 0.93).toFixed(2);
+            (buy * 0.93)
 
 
 
-        let advice = "建議：續抱觀察";
+            .toFixed(2);
 
 
 
-        let color = "green";
+        let advice =
+
+
+
+            "建議：續抱觀察";
+
+
+
+        let color =
+
+
+
+            "green";
 
 
 
@@ -1122,11 +1506,23 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        if(price >= buy * 1.10){
+        if(
 
 
 
-            advice = "建議：分批停利";
+            price >= buy * 1.10
+
+
+
+        ){
+
+
+
+            advice =
+
+
+
+                "建議：分批停利";
 
 
 
@@ -1134,11 +1530,23 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        else if(price <= buy * 0.93){
+        else if(
 
 
 
-            advice = "建議：注意停損";
+            price <= buy * 0.93
+
+
+
+        ){
+
+
+
+            advice =
+
+
+
+                "建議：注意停損";
 
 
 
@@ -1146,7 +1554,15 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        document.getElementById(resultId).innerHTML = `
+        document.getElementById(
+
+
+
+            resultId
+
+
+
+        ).innerHTML = `
 
 
 
@@ -1174,11 +1590,19 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-            停利區：${takeProfit}<br>
+            停利區：
 
 
 
-            停損區：${stopLoss}<br>
+            ${takeProfit}<br>
+
+
+
+            停損區：
+
+
+
+            ${stopLoss}<br>
 
 
 
@@ -1194,7 +1618,15 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        document.getElementById(resultId).innerHTML =
+        document.getElementById(
+
+
+
+            resultId
+
+
+
+        ).innerHTML =
 
 
 
@@ -1210,7 +1642,7 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-// ========================
+// =========================
 
 
 
@@ -1218,7 +1650,7 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-// ========================
+// =========================
 
 
 
@@ -1226,8 +1658,140 @@ function analyzeAll(){
 
 
 
-    savePortfolio();
+    saveData();
 
 
 
-    for(let i=1;i<=3;i
+    for(let i=1;i<=3;i++){
+
+
+
+        const code =
+
+
+
+            document.getElementById(
+
+
+
+                `code${i}`
+
+
+
+            ).value.trim();
+
+
+
+        const buy =
+
+
+
+            parseFloat(
+
+
+
+                document.getElementById(
+
+
+
+                    `buy${i}`
+
+
+
+                ).value
+
+
+
+            );
+
+
+
+        const qty =
+
+
+
+            parseFloat(
+
+
+
+                document.getElementById(
+
+
+
+                    `qty${i}`
+
+
+
+                ).value
+
+
+
+            );
+
+
+
+        getStock(
+
+
+
+            code,
+
+
+
+            buy,
+
+
+
+            qty,
+
+
+
+            `result${i}`
+
+
+
+        );
+
+
+
+    }
+
+
+
+}
+
+
+
+// =========================
+
+
+
+// 啟動
+
+
+
+// =========================
+
+
+
+loadWatchlist();
+
+
+
+renderAiTopStocks();
+
+
+
+loadData();
+
+
+
+</script>
+
+
+
+</body>
+
+
+
+</html>
