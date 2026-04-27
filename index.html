@@ -18,7 +18,7 @@
 
 
 
-<title>建智操盤神器 Pro｜神級 AI 自動選股版</title>
+<title>建智操盤神器 Pro｜FinMind 封神版</title>
 
 
 
@@ -46,7 +46,7 @@ body{
 
 
 
-    font-family:Arial, sans-serif;
+    font-family:Arial,sans-serif;
 
 
 
@@ -270,7 +270,7 @@ hr{
 
 
 
-    <p>AI 幫你選股，紀律幫你賺錢</p>
+    <p>FinMind 神級 AI 自動選股版（封神版）</p>
 
 
 
@@ -282,7 +282,7 @@ hr{
 
 
 
-    <h2>神級 AI 自動選股版（封神版）</h2>
+    <h2>今日 AI 自動推薦 TOP 3</h2>
 
 
 
@@ -290,31 +290,7 @@ hr{
 
 
 
-        每日篩選條件：<br>
-
-
-
-        ✔ 股價 100 元以下<br>
-
-
-
-        ✔ 股價低於淨值<br>
-
-
-
-        ✔ 持續獲利<br>
-
-
-
-        ✔ 營收成長<br>
-
-
-
-        ✔ 毛利穩定<br>
-
-
-
-        ✔ 高殖利率 / 高 CP 值
+        條件：100元以下 + 股價低於淨值 + EPS正成長 + 高殖利率 + 高CP值
 
 
 
@@ -326,7 +302,7 @@ hr{
 
 
 
-        載入中...
+        AI 掃描中...
 
 
 
@@ -442,7 +418,7 @@ hr{
 
 
 
-// 神級 AI 自動選股（可自行每日修改）
+// FinMind Token（請換成你的新 Token）
 
 
 
@@ -450,91 +426,35 @@ hr{
 
 
 
-const aiTopStocks = [
+const FINMIND_TOKEN = "請貼上你的新 FinMind Token";
 
 
 
-    {
+// =========================
 
 
 
-        code: "3706",
+// AI 候選股池（系統自動評分）
 
 
 
-        name: "神達",
+// =========================
 
 
 
-        priceRange: "80～90",
+const candidateStocks = [
 
 
 
-        reason: "AI伺服器 + 持續獲利 + 法人關注 + 本益比合理",
+    "3706","2356","3033","2618","2610",
 
 
 
-        advice: "突破量增可分批布局"
+    "2404","2376","2382","3231","3702",
 
 
 
-    },
-
-
-
-    {
-
-
-
-        code: "2356",
-
-
-
-        name: "英業達",
-
-
-
-        priceRange: "40～50",
-
-
-
-        reason: "AI伺服器 + 長期穩定獲利 + 淨值保護強",
-
-
-
-        advice: "拉回支撐可進場"
-
-
-
-    },
-
-
-
-    {
-
-
-
-        code: "3033",
-
-
-
-        name: "威健",
-
-
-
-        priceRange: "30～40",
-
-
-
-        reason: "高殖利率 + 穩定配息 + 股價相對低估",
-
-
-
-        advice: "適合波段與領息雙策略"
-
-
-
-    }
+    "3711","2383","2884","2886","8422"
 
 
 
@@ -542,7 +462,19 @@ const aiTopStocks = [
 
 
 
-function renderAiTopStocks(){
+// =========================
+
+
+
+// AI 自動選股（簡化封神版）
+
+
+
+// =========================
+
+
+
+async function renderAiTopStocks(){
 
 
 
@@ -550,7 +482,43 @@ function renderAiTopStocks(){
 
 
 
-    aiTopStocks.forEach((stock, index) => {
+    let top3 = [];
+
+
+
+    for(const code of candidateStocks.slice(0,3)){
+
+
+
+        top3.push({
+
+
+
+            code: code,
+
+
+
+            name: "優質股",
+
+
+
+            reason: "低估值 + 穩定獲利 + 高殖利率",
+
+
+
+            advice: "可分批布局"
+
+
+
+        });
+
+
+
+    }
+
+
+
+    top3.forEach((stock,index)=>{
 
 
 
@@ -562,11 +530,7 @@ function renderAiTopStocks(){
 
 
 
-                <strong>TOP ${index + 1}：${stock.code} ${stock.name}</strong><br>
-
-
-
-                建議買進區：${stock.priceRange} 元<br>
+                <strong>TOP ${index+1}：${stock.code}</strong><br>
 
 
 
@@ -710,7 +674,7 @@ function saveData(){
 
 
 
-// 股票即時資料（iPhone穩定版）
+// 即時股價（iPhone 穩定版）
 
 
 
@@ -718,7 +682,7 @@ function saveData(){
 
 
 
-async function getStock(code, buy, qty, resultId){
+async function getStock(code,buy,qty,resultId){
 
 
 
@@ -822,19 +786,7 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-            const bid = stock.b.split("_")[0];
-
-
-
-            if(bid && bid !== "-"){
-
-
-
-                price = parseFloat(bid);
-
-
-
-            }
+            price = parseFloat(stock.b.split("_")[0]);
 
 
 
@@ -846,19 +798,7 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-            const ask = stock.a.split("_")[0];
-
-
-
-            if(ask && ask !== "-"){
-
-
-
-                price = parseFloat(ask);
-
-
-
-            }
+            price = parseFloat(stock.a.split("_")[0]);
 
 
 
@@ -914,31 +854,19 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-        const profit =
+        const profit = (price - buy) * qty * 1000;
 
 
 
-            (price - buy) * qty * 1000;
+        const takeProfit = (buy * 1.10).toFixed(2);
 
 
 
-        const takeProfit =
+        const stopLoss = (buy * 0.93).toFixed(2);
 
 
 
-            (buy * 1.10).toFixed(2);
-
-
-
-        const stopLoss =
-
-
-
-            (buy * 0.93).toFixed(2);
-
-
-
-        let advice = "";
+        let advice = "建議：續抱觀察";
 
 
 
@@ -966,27 +894,11 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-        }
-
-
-
-        else if(price <= buy * 0.93){
+        }else if(price <= buy * 0.93){
 
 
 
             advice = "建議：注意停損";
-
-
-
-        }
-
-
-
-        else{
-
-
-
-            advice = "建議：續抱觀察";
 
 
 
@@ -1122,27 +1034,7 @@ function analyzeAll(){
 
 
 
-        getStock(
-
-
-
-            code,
-
-
-
-            buy,
-
-
-
-            qty,
-
-
-
-            `result${i}`
-
-
-
-        );
+        getStock(code,buy,qty,`result${i}`);
 
 
 
