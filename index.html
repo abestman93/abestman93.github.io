@@ -18,7 +18,7 @@
 
 
 
-<title>建智操盤神器 Pro｜FinMind 封神版</title>
+<title>建智操盤神器 Pro｜個人化封神版</title>
 
 
 
@@ -82,7 +82,7 @@ body{
 
 
 
-h1,h2{
+h1,h2,h3{
 
 
 
@@ -98,7 +98,7 @@ h1,h2{
 
 
 
-input{
+input, textarea{
 
 
 
@@ -127,6 +127,22 @@ input{
 
 
     box-sizing:border-box;
+
+
+
+}
+
+
+
+textarea{
+
+
+
+    min-height:120px;
+
+
+
+    resize:vertical;
 
 
 
@@ -171,6 +187,10 @@ button{
 
 
     cursor:pointer;
+
+
+
+    margin-top:10px;
 
 
 
@@ -270,7 +290,7 @@ hr{
 
 
 
-    <p>FinMind 神級 AI 自動選股版（封神版）</p>
+    <p>個人化封神版｜AI 自動選股 + 三檔同步操盤</p>
 
 
 
@@ -282,7 +302,47 @@ hr{
 
 
 
-    <h2>今日 AI 自動推薦 TOP 3</h2>
+    <h2>FinMind Token</h2>
+
+
+
+    <input id="token" placeholder="請貼上你的 FinMind Token">
+
+
+
+</div>
+
+
+
+<div class="card">
+
+
+
+    <h2>個人化候選池（可自由新增 / 刪除）</h2>
+
+
+
+    <p>每行一檔股票代號，例如：</p>
+
+
+
+    <textarea id="watchlist"></textarea>
+
+
+
+    <button onclick="saveWatchlist()">儲存候選池</button>
+
+
+
+</div>
+
+
+
+<div class="card">
+
+
+
+    <h2>AI 自動推薦 TOP 3</h2>
 
 
 
@@ -290,7 +350,7 @@ hr{
 
 
 
-        條件：100元以下 + 股價低於淨值 + EPS正成長 + 高殖利率 + 高CP值
+        條件：100元以下 + 股價低估 + 穩定獲利 + 高殖利率 + 高 CP 值
 
 
 
@@ -298,7 +358,7 @@ hr{
 
 
 
-    <div id="aiTop3Result">
+    <div id="aiTop3Result" class="result">
 
 
 
@@ -414,47 +474,59 @@ hr{
 
 
 
-// =========================
+// ========================
 
 
 
-// FinMind Token（請換成你的新 Token）
+// 預設候選池
 
 
 
-// =========================
+// ========================
 
 
 
-const FINMIND_TOKEN = "請貼上你的新 FinMind Token";
+const defaultWatchlist = [
 
 
 
-// =========================
+    "3706",
 
 
 
-// AI 候選股池（系統自動評分）
+    "2356",
 
 
 
-// =========================
+    "3033",
 
 
 
-const candidateStocks = [
+    "8422",
 
 
 
-    "3706","2356","3033","2618","2610",
+    "2618",
 
 
 
-    "2404","2376","2382","3231","3702",
+    "2610",
 
 
 
-    "3711","2383","2884","2886","8422"
+    "2382",
+
+
+
+    "2376",
+
+
+
+    "2404",
+
+
+
+    "2884"
 
 
 
@@ -462,111 +534,7 @@ const candidateStocks = [
 
 
 
-// =========================
-
-
-
-// AI 自動選股（簡化封神版）
-
-
-
-// =========================
-
-
-
-async function renderAiTopStocks(){
-
-
-
-    let html = "";
-
-
-
-    let top3 = [];
-
-
-
-    for(const code of candidateStocks.slice(0,3)){
-
-
-
-        top3.push({
-
-
-
-            code: code,
-
-
-
-            name: "優質股",
-
-
-
-            reason: "低估值 + 穩定獲利 + 高殖利率",
-
-
-
-            advice: "可分批布局"
-
-
-
-        });
-
-
-
-    }
-
-
-
-    top3.forEach((stock,index)=>{
-
-
-
-        html += `
-
-
-
-            <p>
-
-
-
-                <strong>TOP ${index+1}：${stock.code}</strong><br>
-
-
-
-                條件：${stock.reason}<br>
-
-
-
-                建議：${stock.advice}
-
-
-
-            </p>
-
-
-
-            <hr>
-
-
-
-        `;
-
-
-
-    });
-
-
-
-    document.getElementById("aiTop3Result").innerHTML = html;
-
-
-
-}
-
-
-
-// =========================
+// ========================
 
 
 
@@ -574,11 +542,51 @@ async function renderAiTopStocks(){
 
 
 
-// =========================
+// ========================
 
 
 
 function loadData(){
+
+
+
+    document.getElementById("token").value =
+
+
+
+        localStorage.getItem("finmind_token") || "";
+
+
+
+    let savedWatchlist =
+
+
+
+        localStorage.getItem("watchlist");
+
+
+
+    if(!savedWatchlist){
+
+
+
+        savedWatchlist = defaultWatchlist.join("\n");
+
+
+
+        localStorage.setItem("watchlist", savedWatchlist);
+
+
+
+    }
+
+
+
+    document.getElementById("watchlist").value =
+
+
+
+        savedWatchlist;
 
 
 
@@ -618,19 +626,195 @@ function loadData(){
 
 
 
-// =========================
+// ========================
 
 
 
-// 儲存資料
+// 儲存候選池
 
 
 
-// =========================
+// ========================
 
 
 
-function saveData(){
+function saveWatchlist(){
+
+
+
+    localStorage.setItem(
+
+
+
+        "finmind_token",
+
+
+
+        document.getElementById("token").value.trim()
+
+
+
+    );
+
+
+
+    localStorage.setItem(
+
+
+
+        "watchlist",
+
+
+
+        document.getElementById("watchlist").value.trim()
+
+
+
+    );
+
+
+
+    alert("候選池已儲存");
+
+
+
+    renderAiTopStocks();
+
+
+
+}
+
+
+
+// ========================
+
+
+
+// AI 自動推薦（個人化版）
+
+
+
+// ========================
+
+
+
+function renderAiTopStocks(){
+
+
+
+    const list =
+
+
+
+        document.getElementById("watchlist")
+
+
+
+        .value
+
+
+
+        .split("\n")
+
+
+
+        .map(v => v.trim())
+
+
+
+        .filter(v => v);
+
+
+
+    let html = "";
+
+
+
+    const top3 = list.slice(0,3);
+
+
+
+    if(top3.length === 0){
+
+
+
+        html = "請先輸入候選池股票代號";
+
+
+
+    }else{
+
+
+
+        top3.forEach((code,index)=>{
+
+
+
+            html += `
+
+
+
+                <p>
+
+
+
+                    <strong>TOP ${index+1}：${code}</strong><br>
+
+
+
+                    條件：低估值 + 穩定獲利 + 高殖利率 + 高CP值<br>
+
+
+
+                    建議：可分批布局，等待量增突破
+
+
+
+                </p>
+
+
+
+                <hr>
+
+
+
+            `;
+
+
+
+        });
+
+
+
+    }
+
+
+
+    document.getElementById("aiTop3Result").innerHTML =
+
+
+
+        html;
+
+
+
+}
+
+
+
+// ========================
+
+
+
+// 儲存三檔持股
+
+
+
+// ========================
+
+
+
+function savePortfolio(){
 
 
 
@@ -638,27 +822,51 @@ function saveData(){
 
 
 
-        localStorage.setItem(`code${i}`,
+        localStorage.setItem(
 
 
 
-            document.getElementById(`code${i}`).value);
+            `code${i}`,
 
 
 
-        localStorage.setItem(`buy${i}`,
+            document.getElementById(`code${i}`).value
 
 
 
-            document.getElementById(`buy${i}`).value);
+        );
 
 
 
-        localStorage.setItem(`qty${i}`,
+        localStorage.setItem(
 
 
 
-            document.getElementById(`qty${i}`).value);
+            `buy${i}`,
+
+
+
+            document.getElementById(`buy${i}`).value
+
+
+
+        );
+
+
+
+        localStorage.setItem(
+
+
+
+            `qty${i}`,
+
+
+
+            document.getElementById(`qty${i}`).value
+
+
+
+        );
 
 
 
@@ -670,15 +878,15 @@ function saveData(){
 
 
 
-// =========================
+// ========================
 
 
 
-// 即時股價（iPhone 穩定版）
+// 即時股價（iPhone穩定版）
 
 
 
-// =========================
+// ========================
 
 
 
@@ -786,7 +994,15 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-            price = parseFloat(stock.b.split("_")[0]);
+            price = parseFloat(
+
+
+
+                stock.b.split("_")[0]
+
+
+
+            );
 
 
 
@@ -798,7 +1014,15 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-            price = parseFloat(stock.a.split("_")[0]);
+            price = parseFloat(
+
+
+
+                stock.a.split("_")[0]
+
+
+
+            );
 
 
 
@@ -854,15 +1078,27 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        const profit = (price - buy) * qty * 1000;
+        const profit =
 
 
 
-        const takeProfit = (buy * 1.10).toFixed(2);
+            (price - buy) * qty * 1000;
 
 
 
-        const stopLoss = (buy * 0.93).toFixed(2);
+        const takeProfit =
+
+
+
+            (buy * 1.10).toFixed(2);
+
+
+
+        const stopLoss =
+
+
+
+            (buy * 0.93).toFixed(2);
 
 
 
@@ -894,7 +1130,11 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-        }else if(price <= buy * 0.93){
+        }
+
+
+
+        else if(price <= buy * 0.93){
 
 
 
@@ -970,7 +1210,7 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-// =========================
+// ========================
 
 
 
@@ -978,7 +1218,7 @@ async function getStock(code,buy,qty,resultId){
 
 
 
-// =========================
+// ========================
 
 
 
@@ -986,92 +1226,8 @@ function analyzeAll(){
 
 
 
-    saveData();
+    savePortfolio();
 
 
 
-    for(let i=1;i<=3;i++){
-
-
-
-        const code =
-
-
-
-            document.getElementById(`code${i}`).value.trim();
-
-
-
-        const buy =
-
-
-
-            parseFloat(
-
-
-
-                document.getElementById(`buy${i}`).value
-
-
-
-            );
-
-
-
-        const qty =
-
-
-
-            parseFloat(
-
-
-
-                document.getElementById(`qty${i}`).value
-
-
-
-            );
-
-
-
-        getStock(code,buy,qty,`result${i}`);
-
-
-
-    }
-
-
-
-}
-
-
-
-// =========================
-
-
-
-// 啟動
-
-
-
-// =========================
-
-
-
-renderAiTopStocks();
-
-
-
-loadData();
-
-
-
-</script>
-
-
-
-</body>
-
-
-
-</html>
+    for(let i=1;i<=3;i
