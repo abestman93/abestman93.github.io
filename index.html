@@ -262,11 +262,11 @@ button{
 
 
 
-    <h2>今日操作建議</h2>
+    <h2>三檔同步操盤系統（可自由更改）</h2>
 
 
 
-    <p>可自由修改股票代號，自動分析停利 / 停損 / 損益</p>
+    <p>支援：股票 / ETF / 上市 / 上櫃 / 8422 / 00919 / 神達 等</p>
 
 
 
@@ -278,7 +278,7 @@ button{
 
 
 
-    <h2>股票一（可自由更改）</h2>
+    <h2>股票一</h2>
 
 
 
@@ -306,7 +306,7 @@ button{
 
 
 
-    <h2>股票二（可自由更改）</h2>
+    <h2>股票二</h2>
 
 
 
@@ -334,7 +334,7 @@ button{
 
 
 
-    <h2>股票三（可自由更改）</h2>
+    <h2>股票三</h2>
 
 
 
@@ -374,7 +374,15 @@ button{
 
 
 
+// =========================
+
+
+
 // 載入儲存資料
+
+
+
+// =========================
 
 
 
@@ -418,7 +426,15 @@ function loadData(){
 
 
 
+// =========================
+
+
+
 // 儲存資料
+
+
+
+// =========================
 
 
 
@@ -486,7 +502,15 @@ function saveData(){
 
 
 
-// 抓資料（iPhone 穩定版）
+// =========================
+
+
+
+// 抓股票資料（iPhone穩定版）
+
+
+
+// =========================
 
 
 
@@ -574,23 +598,115 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-        const price = parseFloat(
+        let price = null;
 
 
 
-            stock.z !== "-" ? stock.z : stock.y
+        // 第一優先：最新成交價（真正即時）
 
 
 
-        );
+        if (stock.z && stock.z !== "-") {
 
 
 
-        const volume = stock.v || "0";
+            price = parseFloat(stock.z);
 
 
 
-        if(isNaN(price)){
+        }
+
+
+
+        // 第二優先：買一價（最接近即時）
+
+
+
+        else if (stock.b && stock.b !== "-") {
+
+
+
+            const bidPrice = stock.b.split("_")[0];
+
+
+
+            if (bidPrice && bidPrice !== "-") {
+
+
+
+                price = parseFloat(bidPrice);
+
+
+
+            }
+
+
+
+        }
+
+
+
+        // 第三優先：賣一價
+
+
+
+        else if (stock.a && stock.a !== "-") {
+
+
+
+            const askPrice = stock.a.split("_")[0];
+
+
+
+            if (askPrice && askPrice !== "-") {
+
+
+
+                price = parseFloat(askPrice);
+
+
+
+            }
+
+
+
+        }
+
+
+
+        // 第四優先：開盤價
+
+
+
+        else if (stock.o && stock.o !== "-") {
+
+
+
+            price = parseFloat(stock.o);
+
+
+
+        }
+
+
+
+        // 最後才用昨收
+
+
+
+        else if (stock.y && stock.y !== "-") {
+
+
+
+            price = parseFloat(stock.y);
+
+
+
+        }
+
+
+
+        if (!price || isNaN(price)) {
 
 
 
@@ -598,7 +714,7 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-                "暫無即時成交價";
+                "目前尚無可用即時價格";
 
 
 
@@ -607,6 +723,10 @@ async function getStock(code, buy, qty, resultId){
 
 
         }
+
+
+
+        const volume = stock.v || "0";
 
 
 
@@ -754,7 +874,15 @@ async function getStock(code, buy, qty, resultId){
 
 
 
+// =========================
+
+
+
 // 更新全部
+
+
+
+// =========================
 
 
 
@@ -842,7 +970,15 @@ function analyzeAll(){
 
 
 
+// =========================
+
+
+
 // 啟動
+
+
+
+// =========================
 
 
 
