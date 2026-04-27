@@ -18,7 +18,7 @@
 
 
 
-<title>建智操盤神器 Pro</title>
+<title>建智操盤神器 Pro｜神級 AI 自動選股版</title>
 
 
 
@@ -230,6 +230,26 @@ button{
 
 
 
+hr{
+
+
+
+    border:0;
+
+
+
+    border-top:1px solid #333;
+
+
+
+    margin:15px 0;
+
+
+
+}
+
+
+
 </style>
 
 
@@ -262,11 +282,55 @@ button{
 
 
 
-    <h2>三檔同步操盤系統（可自由更改）</h2>
+    <h2>神級 AI 自動選股版（封神版）</h2>
 
 
 
-    <p>支援：股票 / ETF / 上市 / 上櫃 / 8422 / 00919 / 神達 等</p>
+    <p>
+
+
+
+        每日篩選條件：<br>
+
+
+
+        ✔ 股價 100 元以下<br>
+
+
+
+        ✔ 股價低於淨值<br>
+
+
+
+        ✔ 持續獲利<br>
+
+
+
+        ✔ 營收成長<br>
+
+
+
+        ✔ 毛利穩定<br>
+
+
+
+        ✔ 高殖利率 / 高 CP 值
+
+
+
+    </p>
+
+
+
+    <div id="aiTop3Result">
+
+
+
+        載入中...
+
+
+
+    </div>
 
 
 
@@ -278,7 +342,7 @@ button{
 
 
 
-    <h2>股票一</h2>
+    <h2>股票一（可自由更改）</h2>
 
 
 
@@ -306,7 +370,7 @@ button{
 
 
 
-    <h2>股票二</h2>
+    <h2>股票二（可自由更改）</h2>
 
 
 
@@ -334,7 +398,7 @@ button{
 
 
 
-    <h2>股票三</h2>
+    <h2>股票三（可自由更改）</h2>
 
 
 
@@ -378,7 +442,171 @@ button{
 
 
 
-// 載入儲存資料
+// 神級 AI 自動選股（可自行每日修改）
+
+
+
+// =========================
+
+
+
+const aiTopStocks = [
+
+
+
+    {
+
+
+
+        code: "3706",
+
+
+
+        name: "神達",
+
+
+
+        priceRange: "80～90",
+
+
+
+        reason: "AI伺服器 + 持續獲利 + 法人關注 + 本益比合理",
+
+
+
+        advice: "突破量增可分批布局"
+
+
+
+    },
+
+
+
+    {
+
+
+
+        code: "2356",
+
+
+
+        name: "英業達",
+
+
+
+        priceRange: "40～50",
+
+
+
+        reason: "AI伺服器 + 長期穩定獲利 + 淨值保護強",
+
+
+
+        advice: "拉回支撐可進場"
+
+
+
+    },
+
+
+
+    {
+
+
+
+        code: "3033",
+
+
+
+        name: "威健",
+
+
+
+        priceRange: "30～40",
+
+
+
+        reason: "高殖利率 + 穩定配息 + 股價相對低估",
+
+
+
+        advice: "適合波段與領息雙策略"
+
+
+
+    }
+
+
+
+];
+
+
+
+function renderAiTopStocks(){
+
+
+
+    let html = "";
+
+
+
+    aiTopStocks.forEach((stock, index) => {
+
+
+
+        html += `
+
+
+
+            <p>
+
+
+
+                <strong>TOP ${index + 1}：${stock.code} ${stock.name}</strong><br>
+
+
+
+                建議買進區：${stock.priceRange} 元<br>
+
+
+
+                條件：${stock.reason}<br>
+
+
+
+                建議：${stock.advice}
+
+
+
+            </p>
+
+
+
+            <hr>
+
+
+
+        `;
+
+
+
+    });
+
+
+
+    document.getElementById("aiTop3Result").innerHTML = html;
+
+
+
+}
+
+
+
+// =========================
+
+
+
+// 載入資料
 
 
 
@@ -446,51 +674,27 @@ function saveData(){
 
 
 
-        localStorage.setItem(
+        localStorage.setItem(`code${i}`,
 
 
 
-            `code${i}`,
+            document.getElementById(`code${i}`).value);
 
 
 
-            document.getElementById(`code${i}`).value
+        localStorage.setItem(`buy${i}`,
 
 
 
-        );
+            document.getElementById(`buy${i}`).value);
 
 
 
-        localStorage.setItem(
+        localStorage.setItem(`qty${i}`,
 
 
 
-            `buy${i}`,
-
-
-
-            document.getElementById(`buy${i}`).value
-
-
-
-        );
-
-
-
-        localStorage.setItem(
-
-
-
-            `qty${i}`,
-
-
-
-            document.getElementById(`qty${i}`).value
-
-
-
-        );
+            document.getElementById(`qty${i}`).value);
 
 
 
@@ -506,7 +710,7 @@ function saveData(){
 
 
 
-// 抓股票資料（iPhone穩定版）
+// 股票即時資料（iPhone穩定版）
 
 
 
@@ -550,19 +754,19 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-        const response = await fetch(url, {
+        const response = await fetch(url,{
 
 
 
-            method: "GET",
+            method:"GET",
 
 
 
-            mode: "cors",
+            mode:"cors",
 
 
 
-            cache: "no-store"
+            cache:"no-store"
 
 
 
@@ -602,11 +806,7 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-        // 第一優先：最新成交價（真正即時）
-
-
-
-        if (stock.z && stock.z !== "-") {
+        if(stock.z && stock.z !== "-"){
 
 
 
@@ -618,23 +818,19 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-        // 第二優先：買一價（最接近即時）
+        else if(stock.b && stock.b !== "-"){
 
 
 
-        else if (stock.b && stock.b !== "-") {
+            const bid = stock.b.split("_")[0];
 
 
 
-            const bidPrice = stock.b.split("_")[0];
+            if(bid && bid !== "-"){
 
 
 
-            if (bidPrice && bidPrice !== "-") {
-
-
-
-                price = parseFloat(bidPrice);
+                price = parseFloat(bid);
 
 
 
@@ -646,23 +842,19 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-        // 第三優先：賣一價
+        else if(stock.a && stock.a !== "-"){
 
 
 
-        else if (stock.a && stock.a !== "-") {
+            const ask = stock.a.split("_")[0];
 
 
 
-            const askPrice = stock.a.split("_")[0];
+            if(ask && ask !== "-"){
 
 
 
-            if (askPrice && askPrice !== "-") {
-
-
-
-                price = parseFloat(askPrice);
+                price = parseFloat(ask);
 
 
 
@@ -674,11 +866,7 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-        // 第四優先：開盤價
-
-
-
-        else if (stock.o && stock.o !== "-") {
+        else if(stock.o && stock.o !== "-"){
 
 
 
@@ -690,11 +878,7 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-        // 最後才用昨收
-
-
-
-        else if (stock.y && stock.y !== "-") {
+        else if(stock.y && stock.y !== "-"){
 
 
 
@@ -706,7 +890,7 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-        if (!price || isNaN(price)) {
+        if(!price || isNaN(price)){
 
 
 
@@ -758,7 +942,7 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-        let profitClass = "green";
+        let color = "green";
 
 
 
@@ -766,7 +950,7 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-            profitClass = "red";
+            color = "red";
 
 
 
@@ -826,7 +1010,7 @@ async function getStock(code, buy, qty, resultId){
 
 
 
-            <span class="${profitClass}">
+            <span class="${color}">
 
 
 
@@ -979,6 +1163,10 @@ function analyzeAll(){
 
 
 // =========================
+
+
+
+renderAiTopStocks();
 
 
 
