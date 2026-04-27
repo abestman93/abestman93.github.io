@@ -1,168 +1,1093 @@
 <!DOCTYPE html>
+
+
+
 <html lang="zh-TW">
+
+
+
 <head>
+
+
+
 <meta charset="UTF-8">
+
+
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>建智操盤神器 Pro</title>
+
+
+
+<title>建智操盤神器 Pro｜最終神級版本</title>
+
+
+
 <style>
+
+
+
 body{
+
+
+
     margin:0;
+
+
+
     padding:20px;
+
+
+
     background:#000;
+
+
+
     color:#fff;
-    font-family:Arial;
+
+
+
+    font-family:Arial, sans-serif;
+
+
+
 }
+
+
+
 .card{
+
+
+
     background:#111;
+
+
+
     border:1px solid #FFD700;
+
+
+
     border-radius:15px;
+
+
+
     padding:20px;
+
+
+
     margin-bottom:20px;
+
+
+
 }
+
+
+
 h1,h2{
+
+
+
     color:#FFD700;
+
+
+
+    margin-top:0;
+
+
+
 }
+
+
+
 input{
+
+
+
     width:100%;
-    padding:10px;
+
+
+
+    padding:12px;
+
+
+
     margin:8px 0;
+
+
+
     border:none;
+
+
+
     border-radius:8px;
+
+
+
     font-size:16px;
+
+
+
+    box-sizing:border-box;
+
+
+
 }
+
+
+
 button{
+
+
+
     width:100%;
+
+
+
     padding:14px;
+
+
+
     border:none;
+
+
+
     border-radius:10px;
+
+
+
     background:#FFD700;
+
+
+
+    color:#000;
+
+
+
     font-size:16px;
+
+
+
     font-weight:bold;
+
+
+
     cursor:pointer;
+
+
+
 }
+
+
+
+button:hover{
+
+
+
+    opacity:0.95;
+
+
+
+}
+
+
+
 .result{
+
+
+
     margin-top:15px;
+
+
+
     line-height:1.8;
+
+
+
     font-size:16px;
+
+
+
 }
+
+
+
+.highlight{
+
+
+
+    color:#00ff88;
+
+
+
+    font-weight:bold;
+
+
+
+}
+
+
+
 </style>
+
+
+
 </head>
+
+
+
 <body>
+
+
+
 <div class="card">
+
+
+
     <h1>建智操盤神器 Pro</h1>
+
+
+
     <p>AI 幫你選股，紀律幫你賺錢</p>
+
+
+
 </div>
+
+
+
 <div class="card">
+
+
+
     <h2>今日操作建議</h2>
+
+
+
     <p>神達：續抱觀察</p>
+
+
+
     <p>00919：持續領息</p>
+
+
+
     <p>英業達：突破再進場</p>
+
+
+
 </div>
+
+
+
 <div class="card">
+
+
+
     <h2>股票一</h2>
+
+
+
     <input id="code1" placeholder="股票代號，例如 3706">
+
+
+
     <input id="buy1" placeholder="買入成本價，例如 75.66">
+
+
+
     <input id="qty1" placeholder="持有張數，例如 2">
+
+
+
     <div class="result" id="result1"></div>
+
+
+
 </div>
+
+
+
 <div class="card">
+
+
+
     <h2>股票二</h2>
+
+
+
     <input id="code2" placeholder="股票代號，例如 00919">
+
+
+
     <input id="buy2" placeholder="買入成本價">
+
+
+
     <input id="qty2" placeholder="持有張數">
+
+
+
     <div class="result" id="result2"></div>
+
+
+
 </div>
+
+
+
 <div class="card">
+
+
+
     <h2>股票三</h2>
+
+
+
     <input id="code3" placeholder="股票代號，例如 2356">
+
+
+
     <input id="buy3" placeholder="買入成本價">
+
+
+
     <input id="qty3" placeholder="持有張數">
+
+
+
     <div class="result" id="result3"></div>
+
+
+
 </div>
+
+
+
 <div class="card">
+
+
+
     <button onclick="analyzeAll()">立即更新全部</button>
+
+
+
 </div>
+
+
+
 <script>
+
+
+
+// =========================
+
+
+
+// 儲存資料
+
+
+
+// =========================
+
+
+
 function saveData(){
+
+
+
     for(let i=1;i<=3;i++){
+
+
+
         localStorage.setItem(`code${i}`, document.getElementById(`code${i}`).value);
+
+
+
         localStorage.setItem(`buy${i}`, document.getElementById(`buy${i}`).value);
+
+
+
         localStorage.setItem(`qty${i}`, document.getElementById(`qty${i}`).value);
+
+
+
     }
+
+
+
 }
+
+
+
+// =========================
+
+
+
+// 載入資料
+
+
+
+// =========================
+
+
+
 function loadData(){
+
+
+
     for(let i=1;i<=3;i++){
+
+
+
         document.getElementById(`code${i}`).value =
+
+
+
             localStorage.getItem(`code${i}`) || "";
+
+
+
         document.getElementById(`buy${i}`).value =
+
+
+
             localStorage.getItem(`buy${i}`) || "";
+
+
+
         document.getElementById(`qty${i}`).value =
+
+
+
             localStorage.getItem(`qty${i}`) || "";
+
+
+
     }
+
+
+
 }
-async function getStock(code,buy,qty,resultId){
+
+
+
+// =========================
+
+
+
+// 通知權限
+
+
+
+// =========================
+
+
+
+function requestNotificationPermission(){
+
+
+
+    if("Notification" in window){
+
+
+
+        Notification.requestPermission();
+
+
+
+    }
+
+
+
+}
+
+
+
+// =========================
+
+
+
+// 發送通知
+
+
+
+// =========================
+
+
+
+function sendNotification(title, body){
+
+
+
+    if(Notification.permission === "granted"){
+
+
+
+        new Notification(title, {
+
+
+
+            body: body
+
+
+
+        });
+
+
+
+    }
+
+
+
+}
+
+
+
+// =========================
+
+
+
+// 語音提醒
+
+
+
+// =========================
+
+
+
+function speakMessage(message){
+
+
+
+    const speech = new SpeechSynthesisUtterance(message);
+
+
+
+    speech.lang = "zh-TW";
+
+
+
+    speech.rate = 1;
+
+
+
+    window.speechSynthesis.speak(speech);
+
+
+
+}
+
+
+
+// =========================
+
+
+
+// 停利停損提醒
+
+
+
+// =========================
+
+
+
+function checkAlert(code, price, buy){
+
+
+
+    if(price >= buy * 1.10){
+
+
+
+        sendNotification(
+
+
+
+            `${code} 已進入停利區`,
+
+
+
+            `目前價格：${price}`
+
+
+
+        );
+
+
+
+        speakMessage(
+
+
+
+            `${code} 已進入停利區，建議分批停利`
+
+
+
+        );
+
+
+
+    }
+
+
+
+    if(price <= buy * 0.93){
+
+
+
+        sendNotification(
+
+
+
+            `${code} 已接近停損區`,
+
+
+
+            `目前價格：${price}`
+
+
+
+        );
+
+
+
+        speakMessage(
+
+
+
+            `${code} 已接近停損區，請注意風險`
+
+
+
+        );
+
+
+
+    }
+
+
+
+}
+
+
+
+// =========================
+
+
+
+// 每日 08:30 提醒
+
+
+
+// =========================
+
+
+
+function morningReminder(){
+
+
+
+    const now = new Date();
+
+
+
+    const hour = now.getHours();
+
+
+
+    const minute = now.getMinutes();
+
+
+
+    if(hour === 8 && minute === 30){
+
+
+
+        sendNotification(
+
+
+
+            "建智操盤神器",
+
+
+
+            "08:30 盤前提醒：請查看今日操作建議"
+
+
+
+        );
+
+
+
+        speakMessage(
+
+
+
+            "早安，請查看今日操作建議"
+
+
+
+        );
+
+
+
+    }
+
+
+
+}
+
+
+
+// =========================
+
+
+
+// 抓股票資料
+
+
+
+// =========================
+
+
+
+async function getStock(code, buy, qty, resultId){
+
+
+
     if(!code || !buy || !qty){
+
+
+
         document.getElementById(resultId).innerHTML =
+
+
+
             "請完整輸入資料";
+
+
+
         return;
+
+
+
     }
+
+
+
     const url =
+
+
+
 `https://stock-proxy.abestman93.workers.dev/?code=${code}`;
+
+
+
     try{
+
+
+
         const response = await fetch(url);
+
+
+
         const data = await response.json();
+
+
+
         if(!data.msgArray || !data.msgArray.length){
+
+
+
             document.getElementById(resultId).innerHTML =
+
+
+
                 "查無資料";
+
+
+
             return;
+
+
+
         }
+
+
+
         const stock = data.msgArray[0];
-        const price = parseFloat(stock.z || stock.y);
+
+
+
+        const price = parseFloat(
+
+
+
+            stock.z !== "-" ? stock.z : stock.y
+
+
+
+        );
+
+
+
+        const volume = stock.v || "0";
+
+
+
         if(isNaN(price)){
+
+
+
             document.getElementById(resultId).innerHTML =
+
+
+
                 "暫無即時成交價";
+
+
+
             return;
+
+
+
         }
+
+
+
         const profit =
+
+
+
             (price - buy) * qty * 1000;
+
+
+
         const takeProfit =
+
+
+
             (buy * 1.10).toFixed(2);
+
+
+
         const stopLoss =
+
+
+
             (buy * 0.93).toFixed(2);
+
+
+
         let advice = "建議：續抱觀察";
+
+
+
         if(price >= buy * 1.10){
+
+
+
             advice = "建議：分批停利";
+
+
+
         }
+
+
+
         else if(price <= buy * 0.93){
+
+
+
             advice = "建議：注意停損";
+
+
+
         }
+
+
+
+        checkAlert(code, price, buy);
+
+
+
         document.getElementById(resultId).innerHTML = `
-            現價：${price}<br>
+
+
+
+            現價：<span class="highlight">${price}</span><br>
+
+
+
+            成交量：${volume}<br>
+
+
+
             今日損益：${profit.toFixed(0)} 元<br>
+
+
+
             停利區：${takeProfit}<br>
+
+
+
             停損區：${stopLoss}<br>
+
+
+
             ${advice}
+
+
+
         `;
+
+
+
     }catch(e){
+
+
+
         document.getElementById(resultId).innerHTML =
+
+
+
             "Proxy 讀取失敗";
+
+
+
     }
+
+
+
 }
+
+
+
+// =========================
+
+
+
+// 更新全部
+
+
+
+// =========================
+
+
+
 function analyzeAll(){
+
+
+
     saveData();
+
+
+
     for(let i=1;i<=3;i++){
+
+
+
         const code =
+
+
+
             document.getElementById(`code${i}`).value.trim();
+
+
+
         const buy =
-            parseFloat(document.getElementById(`buy${i}`).value);
+
+
+
+            parseFloat(
+
+
+
+                document.getElementById(`buy${i}`).value
+
+
+
+            );
+
+
+
         const qty =
-            parseFloat(document.getElementById(`qty${i}`).value);
-        getStock(code,buy,qty,`result${i}`);
+
+
+
+            parseFloat(
+
+
+
+                document.getElementById(`qty${i}`).value
+
+
+
+            );
+
+
+
+        getStock(
+
+
+
+            code,
+
+
+
+            buy,
+
+
+
+            qty,
+
+
+
+            `result${i}`
+
+
+
+        );
+
+
+
     }
+
+
+
 }
+
+
+
+// =========================
+
+
+
+// 啟動
+
+
+
+// =========================
+
+
+
+requestNotificationPermission();
+
+
+
 loadData();
+
+
+
+setInterval(morningReminder, 60000);
+
+
+
 </script>
+
+
+
 </body>
+
 
 
 </html>
