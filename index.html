@@ -18,7 +18,7 @@
 
 
 
-<title>建智操盤神器 Pro｜真正盤中變動版</title>
+<title>建智投資研究室｜真・全市場 AI 自動掃描版</title>
 
 
 
@@ -98,58 +98,6 @@ h1,h2{
 
 
 
-textarea,input,select{
-
-
-
-    width:100%;
-
-
-
-    padding:12px;
-
-
-
-    margin:8px 0;
-
-
-
-    border:none;
-
-
-
-    border-radius:8px;
-
-
-
-    font-size:16px;
-
-
-
-    box-sizing:border-box;
-
-
-
-}
-
-
-
-textarea{
-
-
-
-    min-height:180px;
-
-
-
-    resize:vertical;
-
-
-
-}
-
-
-
 button{
 
 
@@ -210,6 +158,10 @@ button{
 
 
 
+    font-size:16px;
+
+
+
 }
 
 
@@ -239,6 +191,18 @@ button{
 
 
     font-weight:bold;
+
+
+
+}
+
+
+
+.gray{
+
+
+
+    color:#ccc;
 
 
 
@@ -282,39 +246,23 @@ hr{
 
 
 
-    <h1>建智操盤神器 Pro</h1>
+    <h1>建智投資研究室</h1>
 
 
 
-    <p>真正盤中變動版｜即時 TOP3 + 三檔同步操盤</p>
+    <p>
 
 
 
-</div>
+        真・全市場 AI 自動掃描版<br>
 
 
 
-<div class="card">
+        每日自動掃描台股 → 找出百元以下最強 TOP3
 
 
 
-    <h2>候選池（18檔可自由修改）</h2>
-
-
-
-    <textarea id="watchlist"></textarea>
-
-
-
-    <button onclick="saveWatchlist()">
-
-
-
-        儲存候選池
-
-
-
-    </button>
+    </p>
 
 
 
@@ -326,59 +274,55 @@ hr{
 
 
 
-    <h2>操盤模式</h2>
+    <h2>今日 AI 全市場推薦 TOP 3</h2>
 
 
 
-    <select id="mode">
+    <p>
 
 
 
-        <option value="attack">攻擊型（AI股優先）</option>
+        條件：<br>
 
 
 
-        <option value="balance">平衡型（平均配置）</option>
+        ✔ 股價 100 元以下<br>
 
 
 
-        <option value="defense">防守型（高殖利率優先）</option>
+        ✔ 持續獲利<br>
 
 
 
-    </select>
+        ✔ 高殖利率<br>
 
 
 
-    <button onclick="renderTop3()">
+        ✔ 法人熱門股<br>
 
 
 
-        套用模式 + 即時重算
+        ✔ AI 主流題材<br>
 
 
 
-    </button>
+        ✔ 成交量穩定<br>
 
 
 
-</div>
+        ✔ 技術面合理區
 
 
 
-<div class="card">
+    </p>
 
 
 
-    <h2>今日 AI 自動推薦 TOP 3（盤中即時變動）</h2>
+    <div id="top3Result" class="result">
 
 
 
-    <div id="top3" class="result">
-
-
-
-        AI 分析中...
+        AI 正在掃描全市場...
 
 
 
@@ -386,11 +330,51 @@ hr{
 
 
 
-    <button onclick="renderTop3()">
+    <button onclick="loadTop3()">
 
 
 
-        立即刷新 TOP 3
+        立即刷新今日 TOP3
+
+
+
+    </button>
+
+
+
+</div>
+
+
+
+<div class="card">
+
+
+
+    <h2>三檔持股同步監控</h2>
+
+
+
+    <p>
+
+
+
+        可自由輸入股票代號 + 成本價 + 張數
+
+
+
+    </p>
+
+
+
+    <div id="holdingsArea"></div>
+
+
+
+    <button onclick="analyzeAll()">
+
+
+
+        更新持股分析
 
 
 
@@ -410,7 +394,11 @@ hr{
 
 
 
-預設候選池 18 檔
+你的 Cloudflare Worker API
+
+
+
+（這裡換成你的網址）
 
 
 
@@ -418,83 +406,19 @@ hr{
 
 
 
-const defaultList = [
+const TOP3_API =
 
 
 
-"3706",
+"https://stock-proxy.abestman93.workers.dev/top3";
 
 
 
-"2356",
+const PRICE_API =
 
 
 
-"3033",
-
-
-
-"00919",
-
-
-
-"00929",
-
-
-
-"2618",
-
-
-
-"2610",
-
-
-
-"8422",
-
-
-
-"2884",
-
-
-
-"2886",
-
-
-
-"2891",
-
-
-
-"5876",
-
-
-
-"2404",
-
-
-
-"2376",
-
-
-
-"2382",
-
-
-
-"3231",
-
-
-
-"3711",
-
-
-
-"2383"
-
-
-
-];
+"https://stock-proxy.abestman93.workers.dev";
 
 
 
@@ -502,7 +426,7 @@ const defaultList = [
 
 
 
-AI 主流股
+建立三檔持股區
 
 
 
@@ -510,87 +434,115 @@ AI 主流股
 
 
 
-const aiStocks = [
+function renderHoldingInputs(){
 
 
 
-"3706","2356","3033","2376","2382","3231"
+    let html = "";
 
 
 
-];
+    for(let i=1;i<=3;i++){
 
 
 
-/* =========================
+        html += `
 
 
 
-高殖利率股
+            <div style="margin-bottom:20px;">
 
 
 
-========================= */
+                <h3>股票 ${i}</h3>
 
 
 
-const dividendStocks = [
+                <input
 
 
 
-"00919","00929","2884","2886","2891","5876","2618"
+                    id="code${i}"
 
 
 
-];
+                    placeholder="股票代號"
 
 
 
-/* =========================
+                    style="width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;"
 
 
 
-載入候選池
+                >
 
 
 
-========================= */
+                <input
 
 
 
-function loadWatchlist(){
+                    id="buy${i}"
 
 
 
-    let saved =
+                    placeholder="買入成本價"
 
 
 
-        localStorage.getItem("watchlist");
+                    style="width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;"
 
 
 
-    if(!saved){
+                >
 
 
 
-        saved = defaultList.join("\n");
+                <input
 
 
 
-        localStorage.setItem(
+                    id="qty${i}"
 
 
 
-            "watchlist",
+                    placeholder="持有張數"
 
 
 
-            saved
+                    style="width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;"
 
 
 
-        );
+                >
+
+
+
+                <div
+
+
+
+                    id="result${i}"
+
+
+
+                    class="result"
+
+
+
+                ></div>
+
+
+
+                <hr>
+
+
+
+            </div>
+
+
+
+        `;
 
 
 
@@ -602,11 +554,11 @@ function loadWatchlist(){
 
 
 
-        "watchlist"
+        "holdingsArea"
 
 
 
-    ).value = saved;
+    ).innerHTML = html;
 
 
 
@@ -618,7 +570,7 @@ function loadWatchlist(){
 
 
 
-儲存候選池
+載入 TOP3（由 Worker 掃全市場）
 
 
 
@@ -626,11 +578,171 @@ function loadWatchlist(){
 
 
 
-function saveWatchlist(){
+async function loadTop3(){
 
 
 
-    const value =
+    document.getElementById(
+
+
+
+        "top3Result"
+
+
+
+    ).innerHTML =
+
+
+
+        "AI 正在掃描全市場，請稍候...";
+
+
+
+    try{
+
+
+
+        const res =
+
+
+
+            await fetch(
+
+
+
+                TOP3_API + "?t=" + Date.now(),
+
+
+
+                {
+
+
+
+                    method:"GET",
+
+
+
+                    mode:"cors",
+
+
+
+                    cache:"no-store"
+
+
+
+                }
+
+
+
+            );
+
+
+
+        const data =
+
+
+
+            await res.json();
+
+
+
+        if(
+
+
+
+            !data ||
+
+
+
+            !data.top3 ||
+
+
+
+            !data.top3.length
+
+
+
+        ){
+
+
+
+            throw new Error();
+
+
+
+        }
+
+
+
+        let html = "";
+
+
+
+        data.top3.forEach((s,i)=>{
+
+
+
+            html += `
+
+
+
+                <p>
+
+
+
+                    <strong>
+
+
+
+                        TOP ${i+1}：
+
+
+
+                        ${s.code}
+
+
+
+                        （${s.score}分）
+
+
+
+                    </strong><br>
+
+
+
+                    現價：${s.price}<br>
+
+
+
+                    推薦理由：<br>
+
+
+
+                    ${s.reason}<br><br>
+
+
+
+                    建議：
+
+
+
+                    ${s.advice || "可分批布局"}
+
+
+
+                </p>
+
+
+
+                <hr>
+
+
+
+            `;
+
+
+
+        });
 
 
 
@@ -638,35 +750,35 @@ function saveWatchlist(){
 
 
 
-            "watchlist"
+            "top3Result"
 
 
 
-        ).value.trim();
+        ).innerHTML = html;
 
 
 
-    localStorage.setItem(
+    }catch(e){
 
 
 
-        "watchlist",
+        document.getElementById(
 
 
 
-        value
+            "top3Result"
 
 
 
-    );
+        ).innerHTML =
 
 
 
-    alert("候選池已儲存");
+            "讀取失敗，請確認 Worker 已部署";
 
 
 
-    renderTop3();
+    }
 
 
 
@@ -678,7 +790,7 @@ function saveWatchlist(){
 
 
 
-抓即時資料
+抓單檔即時價格
 
 
 
@@ -686,7 +798,7 @@ function saveWatchlist(){
 
 
 
-async function fetchStock(code){
+async function fetchPrice(code){
 
 
 
@@ -694,7 +806,7 @@ async function fetchStock(code){
 
 
 
-`https://stock-proxy.abestman93.workers.dev/?code=${code}&t=${Date.now()}`;
+`${PRICE_API}/?code=${code}&t=${Date.now()}`;
 
 
 
@@ -834,18 +946,6 @@ async function fetchStock(code){
 
 
 
-        else if(s.y && s.y !== "-"){
-
-
-
-            price = parseFloat(s.y);
-
-
-
-        }
-
-
-
         if(!price || isNaN(price)){
 
 
@@ -862,23 +962,11 @@ async function fetchStock(code){
 
 
 
-            code: code,
-
-
-
             price: price,
 
 
 
-            volume: parseInt(s.v || 0),
-
-
-
-            high: parseFloat(s.h || price),
-
-
-
-            low: parseFloat(s.l || price)
+            volume: parseInt(s.v || 0)
 
 
 
@@ -906,7 +994,7 @@ async function fetchStock(code){
 
 
 
-真正評分系統
+持股分析
 
 
 
@@ -914,315 +1002,11 @@ async function fetchStock(code){
 
 
 
-function calcScore(stock){
+async function analyzeStock(i){
 
 
 
-    let score = 0;
-
-
-
-    let reason = [];
-
-
-
-    const mode =
-
-
-
-        document.getElementById("mode").value;
-
-
-
-    /* 成交量 */
-
-
-
-    if(stock.volume >= 10000){
-
-
-
-        score += 30;
-
-
-
-        reason.push("大量成交");
-
-
-
-    }
-
-
-
-    else if(stock.volume >= 3000){
-
-
-
-        score += 20;
-
-
-
-        reason.push("量能穩定");
-
-
-
-    }
-
-
-
-    else if(stock.volume >= 1000){
-
-
-
-        score += 10;
-
-
-
-    }
-
-
-
-    /* 百元以下 */
-
-
-
-    if(stock.price <= 100){
-
-
-
-        score += 20;
-
-
-
-        reason.push("百元以下");
-
-
-
-    }
-
-
-
-    /* 低檔區 */
-
-
-
-    const range =
-
-
-
-        stock.high - stock.low;
-
-
-
-    if(range > 0){
-
-
-
-        const pos =
-
-
-
-            (stock.price - stock.low)
-
-
-
-            / range;
-
-
-
-        if(pos <= 0.35){
-
-
-
-            score += 20;
-
-
-
-            reason.push("接近低檔");
-
-
-
-        }
-
-
-
-        else if(pos <= 0.60){
-
-
-
-            score += 10;
-
-
-
-        }
-
-
-
-    }
-
-
-
-    /* 模式加權 */
-
-
-
-    if(mode === "attack"){
-
-
-
-        if(aiStocks.includes(stock.code)){
-
-
-
-            score += 35;
-
-
-
-            reason.push("AI主流股");
-
-
-
-        }
-
-
-
-    }
-
-
-
-    if(mode === "balance"){
-
-
-
-        if(aiStocks.includes(stock.code)){
-
-
-
-            score += 20;
-
-
-
-            reason.push("主流熱門股");
-
-
-
-        }
-
-
-
-        if(dividendStocks.includes(stock.code)){
-
-
-
-            score += 15;
-
-
-
-            reason.push("高殖利率");
-
-
-
-        }
-
-
-
-    }
-
-
-
-    if(mode === "defense"){
-
-
-
-        if(dividendStocks.includes(stock.code)){
-
-
-
-            score += 35;
-
-
-
-            reason.push("高殖利率");
-
-
-
-        }
-
-
-
-        if(aiStocks.includes(stock.code)){
-
-
-
-            score += 10;
-
-
-
-        }
-
-
-
-    }
-
-
-
-    return {
-
-
-
-        score,
-
-
-
-        reason:
-
-
-
-            reason.join("、")
-
-
-
-    };
-
-
-
-}
-
-
-
-/* =========================
-
-
-
-即時 TOP3
-
-
-
-========================= */
-
-
-
-async function renderTop3(){
-
-
-
-    document.getElementById(
-
-
-
-        "top3"
-
-
-
-    ).innerHTML =
-
-
-
-        "AI 正在盤中即時分析，請稍候...";
-
-
-
-    const raw =
+    const code =
 
 
 
@@ -1230,79 +1014,83 @@ async function renderTop3(){
 
 
 
-            "watchlist"
+            `code${i}`
 
 
 
-        ).value
+        ).value.trim();
 
 
 
-        .trim();
+    const buy =
 
 
 
-    const codes =
+        parseFloat(
 
 
 
-        raw.split("\n")
+            document.getElementById(
 
 
 
-        .map(x=>x.trim())
+                `buy${i}`
 
 
 
-        .filter(x=>x);
+            ).value
 
 
 
-    let list = [];
+        );
 
 
 
-    for(const code of codes){
+    const qty =
 
 
 
-        const stock =
+        parseFloat(
 
 
 
-            await fetchStock(code);
+            document.getElementById(
 
 
 
-        if(!stock) continue;
+                `qty${i}`
 
 
 
-        const ai =
+            ).value
 
 
 
-            calcScore(stock);
+        );
 
 
 
-        list.push({
+    if(!code || !buy || !qty){
 
 
 
-            ...stock,
+        document.getElementById(
 
 
 
-            score: ai.score,
+            `result${i}`
 
 
 
-            reason: ai.reason
+        ).innerHTML =
 
 
 
-        });
+            "請完整輸入資料";
+
+
+
+        return;
 
 
 
@@ -1310,99 +1098,127 @@ async function renderTop3(){
 
 
 
-    list.sort(
+    const stock =
 
 
 
-        (a,b)=>b.score-a.score
+        await fetchPrice(code);
 
 
 
-    );
+    if(!stock){
 
 
 
-    const top3 =
+        document.getElementById(
 
 
 
-        list.slice(0,3);
+            `result${i}`
 
 
 
-    let html = "";
+        ).innerHTML =
 
 
 
-    top3.forEach((s,i)=>{
+            "查無資料";
 
 
 
-        html += `
+        return;
 
 
 
-            <p>
+    }
 
 
 
-                <strong>
+    const profit =
 
 
 
-                    TOP ${i+1}：
+        (stock.price - buy)
 
 
 
-                    ${s.code}
+        * qty
 
 
 
-                    （${s.score}分）
+        * 1000;
 
 
 
-                </strong><br>
+    const tp =
 
 
 
-                現價：${s.price}<br>
+        (buy * 1.10)
 
 
 
-                成交量：${s.volume}<br>
+        .toFixed(2);
 
 
 
-                原因：
+    const sl =
 
 
 
-                ${s.reason}<br><br>
+        (buy * 0.93)
 
 
 
-                建議：
+        .toFixed(2);
 
 
 
-                拉回支撐可分批布局
+    let color =
 
 
 
-            </p>
+        profit >= 0
 
 
 
-            <hr>
+        ? "green"
 
 
 
-        `;
+        : "red";
 
 
 
-    });
+    let advice =
+
+
+
+        "續抱觀察";
+
+
+
+    if(stock.price >= buy * 1.10){
+
+
+
+        advice = "分批停利";
+
+
+
+    }
+
+
+
+    if(stock.price <= buy * 0.93){
+
+
+
+        advice = "注意停損";
+
+
+
+    }
 
 
 
@@ -1410,15 +1226,71 @@ async function renderTop3(){
 
 
 
-        "top3"
+        `result${i}`
 
 
 
-    ).innerHTML =
+    ).innerHTML = `
 
 
 
-        html || "目前無法取得資料";
+        現價：${stock.price}<br>
+
+
+
+        成交量：${stock.volume}<br>
+
+
+
+        損益：
+
+
+
+        <span class="${color}">
+
+
+
+            ${profit.toFixed(0)} 元
+
+
+
+        </span><br>
+
+
+
+        停利區：${tp}<br>
+
+
+
+        停損區：${sl}<br>
+
+
+
+        建議：${advice}
+
+
+
+    `;
+
+
+
+}
+
+
+
+function analyzeAll(){
+
+
+
+    for(let i=1;i<=3;i++){
+
+
+
+        analyzeStock(i);
+
+
+
+    }
 
 
 
@@ -1438,11 +1310,11 @@ async function renderTop3(){
 
 
 
-loadWatchlist();
+renderHoldingInputs();
 
 
 
-renderTop3();
+loadTop3();
 
 
 
