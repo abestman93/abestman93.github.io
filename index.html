@@ -14,223 +14,7 @@
 
 
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
-
-<title>建智投資研究室｜真・全市場 AI 自動掃描版</title>
-
-
-
-<style>
-
-
-
-body{
-
-
-
-    margin:0;
-
-
-
-    padding:20px;
-
-
-
-    background:#000;
-
-
-
-    color:#fff;
-
-
-
-    font-family:Arial,sans-serif;
-
-
-
-}
-
-
-
-.card{
-
-
-
-    background:#111;
-
-
-
-    border:1px solid #FFD700;
-
-
-
-    border-radius:16px;
-
-
-
-    padding:20px;
-
-
-
-    margin-bottom:20px;
-
-
-
-}
-
-
-
-h1,h2{
-
-
-
-    color:#FFD700;
-
-
-
-    margin-top:0;
-
-
-
-}
-
-
-
-button{
-
-
-
-    width:100%;
-
-
-
-    padding:14px;
-
-
-
-    border:none;
-
-
-
-    border-radius:10px;
-
-
-
-    background:#FFD700;
-
-
-
-    color:#000;
-
-
-
-    font-size:16px;
-
-
-
-    font-weight:bold;
-
-
-
-    cursor:pointer;
-
-
-
-    margin-top:10px;
-
-
-
-}
-
-
-
-.result{
-
-
-
-    margin-top:15px;
-
-
-
-    line-height:1.8;
-
-
-
-    font-size:16px;
-
-
-
-}
-
-
-
-.green{
-
-
-
-    color:#00ff88;
-
-
-
-    font-weight:bold;
-
-
-
-}
-
-
-
-.red{
-
-
-
-    color:#ff6666;
-
-
-
-    font-weight:bold;
-
-
-
-}
-
-
-
-.gray{
-
-
-
-    color:#ccc;
-
-
-
-}
-
-
-
-hr{
-
-
-
-    border:0;
-
-
-
-    border-top:1px solid #333;
-
-
-
-    margin:15px 0;
-
-
-
-}
-
-
-
-</style>
+<title>交易級通知系統</title>
 
 
 
@@ -242,147 +26,11 @@ hr{
 
 
 
-<div class="card">
+<h1>📈 交易級監控</h1>
 
 
 
-    <h1>建智投資研究室</h1>
-
-
-
-    <p>
-
-
-
-        真・全市場 AI 自動掃描版<br>
-
-
-
-        每日自動掃描台股 → 找出百元以下最強 TOP3
-
-
-
-    </p>
-
-
-
-</div>
-
-
-
-<div class="card">
-
-
-
-    <h2>今日 AI 全市場推薦 TOP 3</h2>
-
-
-
-    <p>
-
-
-
-        條件：<br>
-
-
-
-        ✔ 股價 100 元以下<br>
-
-
-
-        ✔ 持續獲利<br>
-
-
-
-        ✔ 高殖利率<br>
-
-
-
-        ✔ 法人熱門股<br>
-
-
-
-        ✔ AI 主流題材<br>
-
-
-
-        ✔ 成交量穩定<br>
-
-
-
-        ✔ 技術面合理區
-
-
-
-    </p>
-
-
-
-    <div id="top3Result" class="result">
-
-
-
-        AI 正在掃描全市場...
-
-
-
-    </div>
-
-
-
-    <button onclick="loadTop3()">
-
-
-
-        立即刷新今日 TOP3
-
-
-
-    </button>
-
-
-
-</div>
-
-
-
-<div class="card">
-
-
-
-    <h2>三檔持股同步監控</h2>
-
-
-
-    <p>
-
-
-
-        可自由輸入股票代號 + 成本價 + 張數
-
-
-
-    </p>
-
-
-
-    <div id="holdingsArea"></div>
-
-
-
-    <button onclick="analyzeAll()">
-
-
-
-        更新持股分析
-
-
-
-    </button>
-
-
-
-</div>
+<p id="status"></p>
 
 
 
@@ -390,159 +38,83 @@ hr{
 
 
 
-/* =========================
+const API = "https://你的worker網址";
 
 
 
-你的 Cloudflare Worker API
+let last = {};
 
 
 
-（這裡換成你的網址）
+let triggered = new Set();
 
 
 
-========================= */
+async function load() {
 
 
 
-const TOP3_API =
+  const res = await fetch(API + "/trade?t=" + Date.now());
 
 
 
-"https://stock-proxy.abestman93.workers.dev/top3";
+  const data = await res.json();
 
 
 
-const PRICE_API =
+  document.getElementById("status").innerText = data.updateTime;
 
 
 
-"https://stock-proxy.abestman93.workers.dev";
+  data.list.forEach(s => {
 
 
 
-/* =========================
+    const prev = last[s.code];
 
 
 
-建立三檔持股區
+    if (prev) {
 
 
 
-========================= */
+      // 🔥 突破買點
 
 
 
-function renderHoldingInputs(){
+      if (prev < s.buy && s.price >= s.buy) {
 
 
 
-    let html = "";
+        alertOnce(s.code + "_buy",
 
 
 
-    for(let i=1;i<=3;i++){
+          `🔥突破買點 ${s.name}(${s.code}) → ${s.price}`);
 
 
 
-        html += `
+      }
 
 
 
-            <div style="margin-bottom:20px;">
+      // ❌ 跌破停損
 
 
 
-                <h3>股票 ${i}</h3>
+      if (prev > s.stop && s.price <= s.stop) {
 
 
 
-                <input
+        alertOnce(s.code + "_stop",
 
 
 
-                    id="code${i}"
+          `❌跌破停損 ${s.name}(${s.code}) → ${s.price}`);
 
 
 
-                    placeholder="股票代號"
-
-
-
-                    style="width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;"
-
-
-
-                >
-
-
-
-                <input
-
-
-
-                    id="buy${i}"
-
-
-
-                    placeholder="買入成本價"
-
-
-
-                    style="width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;"
-
-
-
-                >
-
-
-
-                <input
-
-
-
-                    id="qty${i}"
-
-
-
-                    placeholder="持有張數"
-
-
-
-                    style="width:100%;padding:12px;margin:8px 0;border:none;border-radius:8px;"
-
-
-
-                >
-
-
-
-                <div
-
-
-
-                    id="result${i}"
-
-
-
-                    class="result"
-
-
-
-                ></div>
-
-
-
-                <hr>
-
-
-
-            </div>
-
-
-
-        `;
+      }
 
 
 
@@ -550,15 +122,11 @@ function renderHoldingInputs(){
 
 
 
-    document.getElementById(
+    last[s.code] = s.price;
 
 
 
-        "holdingsArea"
-
-
-
-    ).innerHTML = html;
+  });
 
 
 
@@ -566,219 +134,15 @@ function renderHoldingInputs(){
 
 
 
-/* =========================
+// ===== 推播 =====
 
 
 
-載入 TOP3（由 Worker 掃全市場）
+async function send(msg) {
 
 
 
-========================= */
-
-
-
-async function loadTop3(){
-
-
-
-    document.getElementById(
-
-
-
-        "top3Result"
-
-
-
-    ).innerHTML =
-
-
-
-        "AI 正在掃描全市場，請稍候...";
-
-
-
-    try{
-
-
-
-        const res =
-
-
-
-            await fetch(
-
-
-
-                TOP3_API + "?t=" + Date.now(),
-
-
-
-                {
-
-
-
-                    method:"GET",
-
-
-
-                    mode:"cors",
-
-
-
-                    cache:"no-store"
-
-
-
-                }
-
-
-
-            );
-
-
-
-        const data =
-
-
-
-            await res.json();
-
-
-
-        if(
-
-
-
-            !data ||
-
-
-
-            !data.top3 ||
-
-
-
-            !data.top3.length
-
-
-
-        ){
-
-
-
-            throw new Error();
-
-
-
-        }
-
-
-
-        let html = "";
-
-
-
-        data.top3.forEach((s,i)=>{
-
-
-
-            html += `
-
-
-
-                <p>
-
-
-
-                    <strong>
-
-
-
-                        TOP ${i+1}：
-
-
-
-                        ${s.code}
-
-
-
-                        （${s.score}分）
-
-
-
-                    </strong><br>
-
-
-
-                    現價：${s.price}<br>
-
-
-
-                    推薦理由：<br>
-
-
-
-                    ${s.reason}<br><br>
-
-
-
-                    建議：
-
-
-
-                    ${s.advice || "可分批布局"}
-
-
-
-                </p>
-
-
-
-                <hr>
-
-
-
-            `;
-
-
-
-        });
-
-
-
-        document.getElementById(
-
-
-
-            "top3Result"
-
-
-
-        ).innerHTML = html;
-
-
-
-    }catch(e){
-
-
-
-        document.getElementById(
-
-
-
-            "top3Result"
-
-
-
-        ).innerHTML =
-
-
-
-            "讀取失敗，請確認 Worker 已部署";
-
-
-
-    }
+  await fetch(API + "/push?msg=" + encodeURIComponent(msg));
 
 
 
@@ -786,203 +150,23 @@ async function loadTop3(){
 
 
 
-/* =========================
+// ===== 防重複 =====
 
 
 
-抓單檔即時價格
+function alertOnce(key, msg) {
 
 
 
-========================= */
+  if (triggered.has(key)) return;
 
 
 
-async function fetchPrice(code){
+  triggered.add(key);
 
 
 
-    const url =
-
-
-
-`${PRICE_API}/?code=${code}&t=${Date.now()}`;
-
-
-
-    try{
-
-
-
-        const res =
-
-
-
-            await fetch(url,{
-
-
-
-                method:"GET",
-
-
-
-                mode:"cors",
-
-
-
-                cache:"no-store"
-
-
-
-            });
-
-
-
-        const data =
-
-
-
-            await res.json();
-
-
-
-        if(
-
-
-
-            !data.msgArray ||
-
-
-
-            !data.msgArray.length
-
-
-
-        ){
-
-
-
-            return null;
-
-
-
-        }
-
-
-
-        const s =
-
-
-
-            data.msgArray[0];
-
-
-
-        let price = null;
-
-
-
-        if(s.z && s.z !== "-"){
-
-
-
-            price = parseFloat(s.z);
-
-
-
-        }
-
-
-
-        else if(s.b && s.b !== "-"){
-
-
-
-            price = parseFloat(
-
-
-
-                s.b.split("_")[0]
-
-
-
-            );
-
-
-
-        }
-
-
-
-        else if(s.a && s.a !== "-"){
-
-
-
-            price = parseFloat(
-
-
-
-                s.a.split("_")[0]
-
-
-
-            );
-
-
-
-        }
-
-
-
-        else if(s.o && s.o !== "-"){
-
-
-
-            price = parseFloat(s.o);
-
-
-
-        }
-
-
-
-        if(!price || isNaN(price)){
-
-
-
-            return null;
-
-
-
-        }
-
-
-
-        return {
-
-
-
-            price: price,
-
-
-
-            volume: parseInt(s.v || 0)
-
-
-
-        };
-
-
-
-    }catch(e){
-
-
-
-        return null;
-
-
-
-    }
+  send(msg);
 
 
 
@@ -990,331 +174,15 @@ async function fetchPrice(code){
 
 
 
-/* =========================
+// 每20秒（更即時）
 
 
 
-持股分析
+setInterval(load, 20000);
 
 
 
-========================= */
-
-
-
-async function analyzeStock(i){
-
-
-
-    const code =
-
-
-
-        document.getElementById(
-
-
-
-            `code${i}`
-
-
-
-        ).value.trim();
-
-
-
-    const buy =
-
-
-
-        parseFloat(
-
-
-
-            document.getElementById(
-
-
-
-                `buy${i}`
-
-
-
-            ).value
-
-
-
-        );
-
-
-
-    const qty =
-
-
-
-        parseFloat(
-
-
-
-            document.getElementById(
-
-
-
-                `qty${i}`
-
-
-
-            ).value
-
-
-
-        );
-
-
-
-    if(!code || !buy || !qty){
-
-
-
-        document.getElementById(
-
-
-
-            `result${i}`
-
-
-
-        ).innerHTML =
-
-
-
-            "請完整輸入資料";
-
-
-
-        return;
-
-
-
-    }
-
-
-
-    const stock =
-
-
-
-        await fetchPrice(code);
-
-
-
-    if(!stock){
-
-
-
-        document.getElementById(
-
-
-
-            `result${i}`
-
-
-
-        ).innerHTML =
-
-
-
-            "查無資料";
-
-
-
-        return;
-
-
-
-    }
-
-
-
-    const profit =
-
-
-
-        (stock.price - buy)
-
-
-
-        * qty
-
-
-
-        * 1000;
-
-
-
-    const tp =
-
-
-
-        (buy * 1.10)
-
-
-
-        .toFixed(2);
-
-
-
-    const sl =
-
-
-
-        (buy * 0.93)
-
-
-
-        .toFixed(2);
-
-
-
-    let color =
-
-
-
-        profit >= 0
-
-
-
-        ? "green"
-
-
-
-        : "red";
-
-
-
-    let advice =
-
-
-
-        "續抱觀察";
-
-
-
-    if(stock.price >= buy * 1.10){
-
-
-
-        advice = "分批停利";
-
-
-
-    }
-
-
-
-    if(stock.price <= buy * 0.93){
-
-
-
-        advice = "注意停損";
-
-
-
-    }
-
-
-
-    document.getElementById(
-
-
-
-        `result${i}`
-
-
-
-    ).innerHTML = `
-
-
-
-        現價：${stock.price}<br>
-
-
-
-        成交量：${stock.volume}<br>
-
-
-
-        損益：
-
-
-
-        <span class="${color}">
-
-
-
-            ${profit.toFixed(0)} 元
-
-
-
-        </span><br>
-
-
-
-        停利區：${tp}<br>
-
-
-
-        停損區：${sl}<br>
-
-
-
-        建議：${advice}
-
-
-
-    `;
-
-
-
-}
-
-
-
-function analyzeAll(){
-
-
-
-    for(let i=1;i<=3;i++){
-
-
-
-        analyzeStock(i);
-
-
-
-    }
-
-
-
-}
-
-
-
-/* =========================
-
-
-
-啟動
-
-
-
-========================= */
-
-
-
-renderHoldingInputs();
-
-
-
-loadTop3();
+load();
 
 
 
