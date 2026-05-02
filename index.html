@@ -1,197 +1,86 @@
 <!DOCTYPE html>
-
-
-
 <html lang="zh-TW">
-
-
-
 <head>
-
-
-
 <meta charset="UTF-8">
+<title>監控系統（不卡版）</title>
 
-
-
-<title>交易級通知系統</title>
-
-
+<style>
+body { font-family: Arial; padding: 20px; }
+.card { border:1px solid #ccc; padding:10px; margin:10px 0; border-radius:8px;}
+.strong { background:#ffe5e5;}
+.ready { background:#fff5cc;}
+</style>
 
 </head>
 
-
-
 <body>
 
+<h1>📈 即時監控（不卡版）</h1>
 
-
-<h1>📈 交易級監控</h1>
-
-
-
-<p id="status"></p>
-
-
+<p id="status">載入中...</p>
+<div id="result"></div>
 
 <script>
-
-
-
-const API = "https://你的worker網址";
-
-
-
-let last = {};
-
-
-
-let triggered = new Set();
-
-
-
-async function load() {
-
-
-
-  const res = await fetch(API + "/trade?t=" + Date.now());
-
-
-
-  const data = await res.json();
-
-
-
-  document.getElementById("status").innerText = data.updateTime;
-
-
-
-  data.list.forEach(s => {
-
-
-
-    const prev = last[s.code];
-
-
-
-    if (prev) {
-
-
-
-      // 🔥 突破買點
-
-
-
-      if (prev < s.buy && s.price >= s.buy) {
-
-
-
-        alertOnce(s.code + "_buy",
-
-
-
-          `🔥突破買點 ${s.name}(${s.code}) → ${s.price}`);
-
-
-
-      }
-
-
-
-      // ❌ 跌破停損
-
-
-
-      if (prev > s.stop && s.price <= s.stop) {
-
-
-
-        alertOnce(s.code + "_stop",
-
-
-
-          `❌跌破停損 ${s.name}(${s.code}) → ${s.price}`);
-
-
-
-      }
-
-
-
-    }
-
-
-
-    last[s.code] = s.price;
-
-
-
-  });
-
-
-
+const API = "https://stock-proxy-v2.abestman93.workers.dev/real";
+
+// ===== 先顯示快取 =====
+const cache = localStorage.getItem("stockData");
+if (cache) {
+  render(JSON.parse(cache));
 }
 
-
-
-// ===== 推播 =====
-
-
-
-async function send(msg) {
-
-
-
-  await fetch(API + "/push?msg=" + encodeURIComponent(msg));
-
-
-
-}
-
-
-
-// ===== 防重複 =====
-
-
-
-function alertOnce(key, msg) {
-
-
-
-  if (triggered.has(key)) return;
-
-
-
-  triggered.add(key);
-
-
-
-  send(msg);
-
-
-
-}
-
-
-
-// 每20秒（更即時）
-
-
-
-setInterval(load, 20000);
-
-
-
+// ===== 再抓最新 =====
 load();
 
+async function load() {
+  try {
+    const res = await fetch(API + "?t=" + Date.now());
+    const data = await res.json();
 
+    // 存快取
+    localStorage.setItem("stockData", JSON.stringify(data));
+
+    render(data);
+
+  } catch(e) {
+    document.getElementById("status").innerText = "讀取失敗";
+  }
+}
+
+// ===== 畫面 =====
+function render(data) {
+  const status = document.getElementById("status");
+  const result = document.getElementById("result");
+
+  status.innerText = "更新時間: " + data.updateTime;
+  result.innerHTML = "";
+
+  show("🔥 強勢股", data.strong, "strong");
+  show("⚡ 準備股", data.ready, "ready");
+}
+
+function show(title, list, cls) {
+  if (!list || list.length === 0) return;
+
+  const result = document.getElementById("result");
+  result.innerHTML += "<h2>" + title + "</h2>";
+
+  list.forEach(s => {
+    result.innerHTML += `
+      <div class="card ${cls}">
+        <b>${s.name} (${s.code})</b><br>
+        價格：${s.price}｜漲跌：${s.change}<br>
+        分數：${s.score}<br>
+        動作：${s.action}
+      </div>
+    `;
+  });
+}
+
+// 每30秒更新
+setInterval(load, 30000);
 
 </script>
 
-
-
 </body>
-
-
-
 </html>
