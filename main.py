@@ -30,16 +30,15 @@ def monitor():
         print(f"FinMind 登入失敗：{e}")
         return
 
-    # 1. 抓取歷史資料 (週日可抓到週五前的歷史)
     hist_df = api.taiwan_stock_daily(stock_id=STOCK_ID, start_date='2024-04-10')
     
-    # 【🔧 強制發送測試區：讓你現在立刻收到訊息】
+    # 【測試區：強行發送模擬訊息】
+    # 這三行會確保你現在點擊 Run workflow 就能收到 Telegram 訊息
     test_price = 1050.0
-    test_advice = "📱 這是開啟 App 按鈕測試！點擊下方按鈕看能不能叫起投資先生。"
+    test_advice = "這是假日模擬測試成功！你的系統已完全打通。"
     send_telegram_advice(TG_TOKEN, CHAT_ID, STOCK_ID, test_price, test_advice, "🔵")
-    print("✅ 已發送測試訊息至 Telegram")
+    print("✅ 模擬訊息已發送")
 
-    # 2. 抓取今日即時資料 (週日會抓不到，走進 else)
     try:
         tick_df = api.taiwan_stock_daily_info(stock_id=STOCK_ID)
         if not tick_df.empty:
@@ -48,30 +47,23 @@ def monitor():
             advice, color = get_advice(STOCK_ID, now_price, now_vol, hist_df)
             send_telegram_advice(TG_TOKEN, CHAT_ID, STOCK_ID, now_price, advice, color)
         else:
-            print("今日目前無即時交易資料 (假日正常現象)")
-            
+            print("今日目前無即時交易資料 (不影響上述測試訊息發送)")
     except Exception as e:
         print(f"執行出錯: {e}")
 
 def send_telegram_advice(token, chat_id, stock_id, price, advice, color):
-    p1 = "https://api."
-    p2 = "telegram.org/bot"
-    p3 = token
-    p4 = "/sendMessage"
-    url = p1 + p2 + p3 + p4
-    
+    url = "https://api." + "telegram.org/bot" + token + "/sendMessage"
     message_text = f"{color} *股票 {stock_id} 分析結果*\n" \
                    f"━━━━━━━━━━━━━━━\n" \
                    f"💰 目前價格：{price}\n" \
                    f"💡 建議：{advice}"
-
     payload = {
         "chat_id": chat_id,
         "text": message_text,
         "parse_mode": "Markdown",
         "reply_markup": {
             "inline_keyboard": [[
-                {"text": "🚀 開啟投資先生 App", "url": "yuantastockmr://"}
+                {"text": "🚀 開啟投資先生", "url": "https://yuanta.com.tw"}
             ]]
         }
     }
