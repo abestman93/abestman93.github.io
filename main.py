@@ -39,6 +39,9 @@ def monitor():
     # 2. 抓取今日成交資訊
     try:
         tick_df = api.taiwan_stock_daily_info(stock_id=STOCK_ID)
+now_price = 1050.0
+now_vol = 50000.0
+send_telegram_advice(TG_TOKEN, CHAT_ID, STOCK_ID, now_price, advice="這是假日模擬測試成功！", color="🔵")
         if not tick_df.empty:
             now_price = float(tick_df['close'].iloc[0])
             now_vol = float(tick_df['vol'].iloc[0])
