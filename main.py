@@ -42,7 +42,7 @@ def send_button_message():
                         "action": {
                           "type": "uri",
                           "label": "查看我的網頁",
-                          "uri": "https://github.io"
+                          "uri": "https://abestman93.github.io"
                         }
                       }
                     ]
