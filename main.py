@@ -23,8 +23,8 @@ def get_advice(stock_id, current_price, current_volume, hist_df):
     return advice, color
 
 def monitor():
-    # --- 設定區 (已填入你的 Telegram 資訊) ---
-    FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiYWJlc3RtYW45MyIsImVtYWlsIjoiYWJlc3RtYW45M0BnbWFpbC5jb20iLCJ0b2tlbl92ZXJzaW9uIjowfQ.765dsySj_ijbbkzhN8ZknCD4EpANAFCMLlMM71GFn0c" 
+    # --- 設定區 (已填入你的正確資訊) ---
+    FINMIND_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2Vy_lkIjoiYWJlc3RtYW45MyIsImVtYWlsIjoiYWJlc3RtYW45M0BnbWFpbC5jb20iLCJ0b2tlbl92ZXJzaW9uIjowfQ.765dsySj_ijbbkzhN8ZknCD4EpANAFCMLlMM71GFn0c" 
     TG_TOKEN = "8774997405:AAGUMlYMjgyEwePAq1sKL3sACxh-hwhjryc"
     CHAT_ID = "8753483383" 
     STOCK_ID = "2330" 
@@ -40,23 +40,29 @@ def monitor():
         tick_df = api.taiwan_stock_daily_info(stock_id=STOCK_ID)
         
         if not tick_df.empty:
+            # 取得最新收盤價與當日成交量
             now_price = float(tick_df['close'].iloc[0])
             now_vol = float(tick_df['vol'].iloc[0])
             
             # 3. 取得分析建議
             advice, color = get_advice(STOCK_ID, now_price, now_vol, hist_df)
             
-            # 4. 發送至 Telegram (完全免費，不限次數)
+            # 4. 發送至 Telegram (分段路徑拼湊)
             send_telegram_advice(TG_TOKEN, CHAT_ID, STOCK_ID, now_price, advice, color)
-            print(f"成功發送 Telegram 監控訊息，價格: {now_price}")
+            print(f"成功發送 Telegram 監控訊息，當前價格: {now_price}")
         else:
-            print("今日目前無交易資料")
+            print("今日目前無交易資料 (假日不執行發送)")
             
     except Exception as e:
         print(f"執行出錯: {e}")
 
 def send_telegram_advice(token, chat_id, stock_id, price, advice, color):
-    url = f"https://telegram.org{token}/sendMessage"
+    # 【四段式路徑拼湊，確保 API 路徑絕對正確】
+    p1 = "https://api."
+    p2 = "telegram.org/bot"
+    p3 = token
+    p4 = "/sendMessage"
+    url = p1 + p2 + p3 + p4
     
     # 組合 Telegram 訊息文字
     message_text = f"{color} *股票 {stock_id} 分析結果*\n" \
@@ -74,6 +80,7 @@ def send_telegram_advice(token, chat_id, stock_id, price, advice, color):
             ]]
         }
     }
+    # 執行 POST 請求
     requests.post(url, json=payload)
 
 if __name__ == "__main__":
