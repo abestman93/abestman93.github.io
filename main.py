@@ -63,7 +63,7 @@ def send_telegram_advice(token, chat_id, stock_id, price, advice, color):
         "parse_mode": "Markdown",
         "reply_markup": {
             "inline_keyboard": [[
-                {"text": "🚀 開啟投資先生", "開啟投資先生 App", "url": "yuantastockmr://"}
+                {"text": "🚀 開啟投資先生 App", "url": "yuantastockmr://"}
             ]]
         }
     }
