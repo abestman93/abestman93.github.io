@@ -28,7 +28,7 @@ def send_button_message():
                     "type": "box",
                     "layout": "vertical",
                     "contents": [
-                      {"type": "text", "text": "網站部署狀態", "weight": "bold", "size": "xl"},
+                      {"type": "text", "text": "網站部署測試", "weight": "bold", "size": "xl"},
                       {"type": "text", "text": "你的 GitHub Pages 專案已更新！", "margin": "md"}
                     ]
                   },
