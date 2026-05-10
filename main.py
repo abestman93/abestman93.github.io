@@ -8,7 +8,7 @@ def send_button_message():
     user_id = "Ucd008679a0984fb58643a92ee1f2232c"
     
     # 錯誤修正：LINE API 的正確傳送網址是這個
-    url = "https://line.me"
+    url = "https:api.line.me/v2/bot/message/push"
     
     headers = {
         "Content-Type": "application/json",
