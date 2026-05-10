@@ -32,28 +32,30 @@ def monitor():
     api = DataLoader()
     api.login_by_token(api_token=FINMIND_TOKEN)
     
-    # 1. 抓取歷史資料
+    # 1. 抓取歷史資料 (過去 30 天)
     hist_df = api.taiwan_stock_daily(stock_id=STOCK_ID, start_date='2024-04-10')
     
-    # 2. 抓取即時快照 (來自證交所)
-    tick_df = api.taiwan_stock_tick_snapshot(stock_id=STOCK_ID)
-    
-    if not tick_df.empty:
-        try:
-            # 取得最新成交價與量
-            now_price = float(tick_df['last_price'].iloc[0])
-            now_vol = float(tick_df['total_volume'].iloc[0])
+    # 2. 抓取今日目前成交資訊 (改用免費版權限指令)
+    try:
+        # 免費帳號使用 daily_info 獲取當日最新數據
+        tick_df = api.taiwan_stock_daily_info(stock_id=STOCK_ID)
+        
+        if not tick_df.empty:
+            # 取得最新收盤價與當日成交量
+            now_price = float(tick_df['close'].iloc[0])
+            now_vol = float(tick_df['vol'].iloc[0])
             
             # 3. 取得分析建議
             advice, color = get_advice(STOCK_ID, now_price, now_vol, hist_df)
             
             # 4. 發送 LINE 訊息
             send_line_advice(LINE_TOKEN, USER_ID, STOCK_ID, now_price, advice, color)
-            print(f"成功發送 {STOCK_ID} 監控訊息")
-        except Exception as e:
-            print(f"資料解析失敗: {e}")
-    else:
-        print("今日目前無即時成交資料")
+            print(f"成功發送 {STOCK_ID} 監控訊息，當前價格: {now_price}")
+        else:
+            print("今日目前無交易資料 (可能尚未開盤)")
+            
+    except Exception as e:
+        print(f"執行出錯: {e}")
 
 def send_line_advice(token, user_id, stock_id, price, advice, color):
     url = "https://api.line.me/v2/bot/message/push"
@@ -71,7 +73,7 @@ def send_line_advice(token, user_id, stock_id, price, advice, color):
                     "contents": [
                         {"type": "text", "text": f"股票 {stock_id} 分析結果", "weight": "bold", "size": "lg"},
                         {"type": "separator", "margin": "md"},
-                        {"type": "text", "text": f"最新價格：{price}", "margin": "md", "size": "md"},
+                        {"type": "text", "text": f"目前價格：{price}", "margin": "md", "size": "md"},
                         {"type": "text", "text": advice, "weight": "bold", "color": color, "margin": "lg", "wrap": True}
                     ]
                 },
